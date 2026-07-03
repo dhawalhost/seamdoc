@@ -223,6 +223,18 @@ importers:
         specifier: workspace:*
         version: link:../types
 
+  packages/templates:
+    dependencies:
+      '@seamdoc/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@seamdoc/types':
+        specifier: workspace:*
+        version: link:../types
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
+
   packages/themes:
     dependencies:
       zod:

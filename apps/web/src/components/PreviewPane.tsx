@@ -14,10 +14,11 @@ import {
 import { renderMarkdown } from '@seamdoc/core';
 import type { RenderBlock, RenderDocument, RenderListItem, TextRun } from '@seamdoc/renderer';
 import type { DocumentSettings } from '@seamdoc/types';
+import type { Theme } from '@seamdoc/themes';
 
 interface PreviewPaneProps {
   markdown: string;
-  themeId: string;
+  theme: Theme | string;
   settings: DocumentSettings;
 }
 
@@ -185,7 +186,7 @@ function Block({ block }: { block: RenderBlock }): ReactNode {
 }
 
 export const PreviewPane = forwardRef<HTMLDivElement, PreviewPaneProps>(function PreviewPane(
-  { markdown, themeId, settings }: PreviewPaneProps,
+  { markdown, theme, settings }: PreviewPaneProps,
   scrollRef,
 ) {
   const [debounced, setDebounced] = useState(markdown);
@@ -197,11 +198,11 @@ export const PreviewPane = forwardRef<HTMLDivElement, PreviewPaneProps>(function
 
   const rendered = useMemo<RenderDocument | null>(() => {
     try {
-      return renderMarkdown(debounced, { theme: themeId, settings }).renderDocument;
+      return renderMarkdown(debounced, { theme, settings }).renderDocument;
     } catch {
       return null;
     }
-  }, [debounced, themeId, settings]);
+  }, [debounced, theme, settings]);
 
   if (rendered === null) {
     return (

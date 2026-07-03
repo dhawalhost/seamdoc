@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useAppStore } from './store';
+import { resolveActiveTheme, useAppStore } from './store';
 import { EditorPane } from './components/EditorPane';
 import { PreviewPane } from './components/PreviewPane';
 import { Toolbar } from './components/Toolbar';
 import { SettingsPanel } from './components/SettingsPanel';
 
 export default function App() {
-  const { markdown, themeId, settings, darkMode, settingsOpen, setMarkdown } = useAppStore();
+  const { markdown, themeId, customThemes, settings, darkMode, settingsOpen, setMarkdown } =
+    useAppStore();
   const [dragging, setDragging] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   // Counter instead of boolean: dragenter/dragleave fire per child element.
@@ -65,7 +66,12 @@ export default function App() {
           />
         </section>
         <section className="min-w-0 flex-1">
-          <PreviewPane ref={previewRef} markdown={markdown} themeId={themeId} settings={settings} />
+          <PreviewPane
+            ref={previewRef}
+            markdown={markdown}
+            theme={resolveActiveTheme(themeId, customThemes)}
+            settings={settings}
+          />
         </section>
         {settingsOpen && <SettingsPanel />}
       </main>

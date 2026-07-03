@@ -9,6 +9,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { DocumentMetadata, DocumentSettings } from '@seamdoc/types';
 import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
+import { getBuiltinTheme, type Theme } from '@seamdoc/themes';
 
 export const SAMPLE_MARKDOWN = `# Welcome to Seamdoc
 
@@ -39,15 +40,27 @@ interface AppState {
   themeId: string;
   settings: DocumentSettings;
   metadata: DocumentMetadata;
+  /** Imported (community) themes, persisted locally. */
+  customThemes: Theme[];
   darkMode: boolean;
   settingsOpen: boolean;
   setMarkdown: (markdown: string) => void;
   setThemeId: (themeId: string) => void;
+  addCustomTheme: (theme: Theme) => void;
   updateSettings: (settings: Partial<DocumentSettings>) => void;
   updateMetadata: (metadata: Partial<DocumentMetadata>) => void;
   toggleDarkMode: () => void;
   setSettingsOpen: (open: boolean) => void;
   newDocument: () => void;
+}
+
+/** Resolves the active theme: custom themes first, then built-ins by id. */
+export function resolveActiveTheme(themeId: string, customThemes: readonly Theme[]): Theme | string {
+  return customThemes.find((theme) => theme.metadata.id === themeId) ?? themeId;
+}
+
+export function isBuiltinThemeId(themeId: string): boolean {
+  return getBuiltinTheme(themeId) !== undefined;
 }
 
 export const useAppStore = create<AppState>()(
@@ -57,10 +70,19 @@ export const useAppStore = create<AppState>()(
       themeId: 'minimal',
       settings: DEFAULT_DOCUMENT_SETTINGS,
       metadata: DEFAULT_DOCUMENT_METADATA,
+      customThemes: [],
       darkMode: false,
       settingsOpen: false,
       setMarkdown: (markdown) => set({ markdown }),
       setThemeId: (themeId) => set({ themeId }),
+      addCustomTheme: (theme) =>
+        set((state) => ({
+          customThemes: [
+            ...state.customThemes.filter((t) => t.metadata.id !== theme.metadata.id),
+            theme,
+          ],
+          themeId: theme.metadata.id,
+        })),
       updateSettings: (partial) =>
         set((state) => ({ settings: { ...state.settings, ...partial } })),
       updateMetadata: (partial) =>
@@ -76,6 +98,7 @@ export const useAppStore = create<AppState>()(
         themeId: state.themeId,
         settings: state.settings,
         metadata: state.metadata,
+        customThemes: state.customThemes,
         darkMode: state.darkMode,
       }),
     },

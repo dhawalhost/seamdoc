@@ -1,10 +1,10 @@
 /** Application toolbar: file actions, theme switching, settings, export. */
 
 import { useRef, useState } from 'react';
-import { Download, FilePlus, FolderOpen, Moon, Settings, Sun } from 'lucide-react';
-import { builtinThemes } from '@seamdoc/themes';
-import { useAppStore } from '../store';
-import { downloadDocx } from '../lib/export';
+import { Download, FilePlus, FolderOpen, Moon, Palette, Settings, Share, Sun } from 'lucide-react';
+import { builtinThemes, getBuiltinTheme, validateTheme } from '@seamdoc/themes';
+import { resolveActiveTheme, useAppStore } from '../store';
+import { downloadDocx, downloadThemeJson } from '../lib/export';
 
 export function Toolbar() {
   const {
@@ -12,8 +12,10 @@ export function Toolbar() {
     themeId,
     settings,
     metadata,
+    customThemes,
     darkMode,
     setThemeId,
+    addCustomTheme,
     toggleDarkMode,
     setSettingsOpen,
     settingsOpen,
@@ -21,7 +23,9 @@ export function Toolbar() {
     setMarkdown,
   } = useAppStore();
   const fileInput = useRef<HTMLInputElement>(null);
+  const themeInput = useRef<HTMLInputElement>(null);
   const [exporting, setExporting] = useState(false);
+  const [themeError, setThemeError] = useState('');
 
   const openFile = async (file: File | undefined) => {
     if (file === undefined) {
@@ -33,9 +37,34 @@ export function Toolbar() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      await downloadDocx(markdown, themeId, settings, metadata);
+      await downloadDocx(markdown, resolveActiveTheme(themeId, customThemes), settings, metadata);
     } finally {
       setExporting(false);
+    }
+  };
+
+  const importTheme = async (file: File | undefined) => {
+    if (file === undefined) {
+      return;
+    }
+    setThemeError('');
+    try {
+      const result = validateTheme(JSON.parse(await file.text()));
+      if (result.valid && result.theme !== null) {
+        addCustomTheme(result.theme);
+      } else {
+        setThemeError(`Invalid theme: ${result.errors[0] ?? 'unknown error'}`);
+      }
+    } catch {
+      setThemeError('Invalid theme: file is not valid JSON.');
+    }
+  };
+
+  const exportTheme = () => {
+    const active =
+      customThemes.find((theme) => theme.metadata.id === themeId) ?? getBuiltinTheme(themeId);
+    if (active !== undefined) {
+      downloadThemeJson(active);
     }
   };
 
@@ -96,8 +125,51 @@ export function Toolbar() {
               {theme.metadata.name}
             </option>
           ))}
+          {customThemes.map((theme) => (
+            <option key={theme.metadata.id} value={theme.metadata.id}>
+              {theme.metadata.name} (imported)
+            </option>
+          ))}
         </select>
       </label>
+
+      <button
+        type="button"
+        onClick={() => themeInput.current?.click()}
+        title="Import theme (JSON)"
+        aria-label="Import theme"
+        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+      >
+        <Palette size={18} />
+      </button>
+      <input
+        ref={themeInput}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        data-testid="theme-file-input"
+        onChange={(event) => {
+          void importTheme(event.target.files?.[0]);
+          event.target.value = '';
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={exportTheme}
+        title="Export active theme (JSON)"
+        aria-label="Export active theme"
+        data-testid="theme-export-button"
+        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+      >
+        <Share size={18} />
+      </button>
+
+      {themeError !== '' && (
+        <span role="alert" data-testid="theme-error" className="text-xs text-red-600">
+          {themeError}
+        </span>
+      )}
 
       <button
         type="button"
