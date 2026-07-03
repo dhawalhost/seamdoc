@@ -3,6 +3,13 @@
 One lesson per entry, newest first. Records corrections and confirmed approaches
 that git history alone doesn't explain.
 
+## Plugin isolation: clone SDM before each transform
+
+Plugins receive a deep clone of the working document so in-place mutation
+cannot corrupt the pipeline if the plugin throws. SDM validation walks the
+full tree (nested blocks and inlines) so malformed plugin output is caught
+at Stage 7 instead of failing later in layout.
+
 ## Playwright serves the built app, so build before e2e
 
 `playwright.config.ts` uses `vite preview`, which serves `dist/`. New UI won't

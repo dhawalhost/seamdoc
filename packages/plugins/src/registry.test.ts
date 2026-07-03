@@ -111,6 +111,47 @@ describe('PluginRegistry', () => {
     expect(registry.run(makeDocument()).disabled).toEqual([]);
   });
 
+  it('discards in-place mutations when a plugin throws after editing its input', () => {
+    const registry = new PluginRegistry();
+    registry.register({
+      id: 'mutator',
+      name: 'Mutator',
+      version: '1.0.0',
+      transform: (document) => {
+        (document.children as unknown as { type: string; children?: unknown }[])[0] = {
+          type: 'paragraph',
+          children: [{ type: 'text', value: 'CORRUPTED' }],
+        };
+        throw new Error('failed after mutate');
+      },
+    });
+    const input = makeDocument();
+    const result = registry.run(input);
+    expect(result.disabled).toEqual(['mutator']);
+    expect(result.document).toEqual(input);
+  });
+
+  it('discards changes from plugins that produce invalid nested nodes', () => {
+    const registry = new PluginRegistry();
+    registry.register({
+      id: 'nested-bogus',
+      name: 'Nested Bogus',
+      version: '1.0.0',
+      transform: (document) => ({
+        ...document,
+        children: [
+          {
+            type: 'quote',
+            children: [{ type: 'paragraph', children: [{ type: 'bogus' }] as never }],
+          },
+        ],
+      }),
+    });
+    const result = registry.run(makeDocument());
+    expect(result.disabled).toEqual(['nested-bogus']);
+    expect(result.document).toEqual(makeDocument());
+  });
+
   it('discards changes from plugins that produce invalid documents', () => {
     const registry = new PluginRegistry();
     registry.register({

@@ -24,5 +24,6 @@ export type {
   SdmText,
   SdmThematicBreak,
 } from './nodes.js';
+export { cloneDocument } from './clone.js';
 export { fromMdast, type FromMdastOptions } from './from-mdast.js';
 export { validateDocument, type ValidationIssue, type ValidationResult } from './validate.js';

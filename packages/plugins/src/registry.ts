@@ -4,7 +4,7 @@
  * plugin → continue rendering).
  */
 
-import { validateDocument, type SdmDocument } from '@seamdoc/semantic-model';
+import { cloneDocument, validateDocument, type SdmDocument } from '@seamdoc/semantic-model';
 import type {
   PluginRunResult,
   PluginRunWarning,
@@ -105,7 +105,9 @@ export class PluginRegistry {
       }
       const pluginId = entry.plugin.id;
       try {
-        const next = entry.plugin.transform(current, {
+        // Plugins receive a clone so in-place mutation cannot corrupt the
+        // working document if the plugin throws or returns invalid output.
+        const next = entry.plugin.transform(cloneDocument(current), {
           warn: (message) => warnings.push({ pluginId, message }),
         });
         const validation = validateDocument(next);

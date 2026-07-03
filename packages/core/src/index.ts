@@ -77,6 +77,14 @@ export function renderMarkdown(markdown: string, options: RenderOptions = {}): R
     for (const warning of pluginResult.warnings) {
       warnings.push({ stage: `plugin:${warning.pluginId}`, message: warning.message });
     }
+
+    const postPluginValidation = validateDocument(semanticDocument);
+    if (!postPluginValidation.valid) {
+      const details = postPluginValidation.issues
+        .map((issue) => `${issue.path}: ${issue.message}`)
+        .join('; ');
+      throw new Error(`Semantic document validation failed after plugins: ${details}`);
+    }
   }
 
   const renderDocument = layoutDocument({ document: semanticDocument, theme, settings });

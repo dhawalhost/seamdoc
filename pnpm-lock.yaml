@@ -209,9 +209,6 @@ importers:
       '@seamdoc/semantic-model':
         specifier: workspace:*
         version: link:../semantic-model
-      '@seamdoc/types':
-        specifier: workspace:*
-        version: link:../types
     devDependencies:
       '@seamdoc/shared':
         specifier: workspace:*

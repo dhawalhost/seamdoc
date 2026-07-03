@@ -22,8 +22,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@seamdoc/semantic-model": "workspace:*",
-    "@seamdoc/types": "workspace:*"
+    "@seamdoc/semantic-model": "workspace:*"
   },
   "devDependencies": {
     "@seamdoc/shared": "workspace:*"
