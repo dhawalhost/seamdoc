@@ -11,6 +11,7 @@ export function Toolbar() {
     markdown,
     themeId,
     settings,
+    metadata,
     darkMode,
     setThemeId,
     toggleDarkMode,
@@ -32,11 +33,13 @@ export function Toolbar() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      await downloadDocx(markdown, themeId, settings);
+      await downloadDocx(markdown, themeId, settings, metadata);
     } finally {
       setExporting(false);
     }
   };
+
+  const words = markdown.trim() === '' ? 0 : markdown.trim().split(/\s+/).length;
 
   return (
     <header className="flex items-center gap-2 border-b border-neutral-200 bg-white px-4 py-2 dark:border-neutral-700 dark:bg-neutral-900">
@@ -67,14 +70,22 @@ export function Toolbar() {
         accept=".md,.markdown,text/markdown"
         className="hidden"
         data-testid="file-input"
-        onChange={(event) => void openFile(event.target.files?.[0])}
+        onChange={(event) => {
+          void openFile(event.target.files?.[0]);
+          // Reset so selecting the same file again re-triggers onChange.
+          event.target.value = '';
+        }}
       />
 
       <div className="mx-2 h-6 w-px bg-neutral-200 dark:bg-neutral-700" />
 
-      <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+      <label
+        htmlFor="theme-select"
+        className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300"
+      >
         Theme
         <select
+          id="theme-select"
           value={themeId}
           onChange={(event) => setThemeId(event.target.value)}
           data-testid="theme-select"
@@ -100,6 +111,13 @@ export function Toolbar() {
       </button>
 
       <div className="flex-1" />
+
+      <span
+        className="mr-2 text-xs text-neutral-500 dark:text-neutral-400"
+        data-testid="word-count"
+      >
+        {words} {words === 1 ? 'word' : 'words'}
+      </span>
 
       <button
         type="button"

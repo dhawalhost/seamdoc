@@ -9,6 +9,8 @@ export default function App() {
   const { markdown, themeId, settings, darkMode, settingsOpen, setMarkdown } = useAppStore();
   const [dragging, setDragging] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+  // Counter instead of boolean: dragenter/dragleave fire per child element.
+  const dragDepth = useRef(0);
 
   const syncPreviewScroll = useCallback((ratio: number) => {
     const preview = previewRef.current;
@@ -24,6 +26,7 @@ export default function App() {
   const onDrop = useCallback(
     async (event: React.DragEvent) => {
       event.preventDefault();
+      dragDepth.current = 0;
       setDragging(false);
       const file = event.dataTransfer.files[0];
       if (file !== undefined && (file.name.endsWith('.md') || file.type === 'text/markdown')) {
@@ -36,11 +39,19 @@ export default function App() {
   return (
     <div
       className="flex h-full flex-col bg-neutral-50 dark:bg-neutral-950"
-      onDragOver={(event) => {
+      onDragOver={(event) => event.preventDefault()}
+      onDragEnter={(event) => {
         event.preventDefault();
+        dragDepth.current += 1;
         setDragging(true);
       }}
-      onDragLeave={() => setDragging(false)}
+      onDragLeave={() => {
+        dragDepth.current -= 1;
+        if (dragDepth.current <= 0) {
+          dragDepth.current = 0;
+          setDragging(false);
+        }
+      }}
       onDrop={(event) => void onDrop(event)}
     >
       <Toolbar />

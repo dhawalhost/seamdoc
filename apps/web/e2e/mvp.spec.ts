@@ -4,11 +4,24 @@
  * adjust settings, and download a correct DOCX.
  */
 
-import { expect, test } from '@playwright/test';
+import { expect, test, type Download } from '@playwright/test';
+import JSZip from 'jszip';
+
+async function downloadBuffer(download: Download): Promise<Buffer> {
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk as Buffer);
+  }
+  return Buffer.concat(chunks);
+}
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.clear());
+  // Clear persisted state once, then reload; addInitScript would also wipe
+  // storage on in-test reloads and break persistence tests.
   await page.goto('/');
+  await page.evaluate(() => window.localStorage.clear());
+  await page.reload();
 });
 
 test('loads with editor, preview, and sample document', async ({ page }) => {
@@ -55,22 +68,53 @@ test('document settings change the preview pages', async ({ page }) => {
   await expect(page.getByTestId('preview-page').first()).toContainText('Confidential');
 });
 
-test('exports a DOCX download', async ({ page }) => {
+test('exports a DOCX whose content matches the document', async ({ page }) => {
+  await page.locator('.monaco-editor').first().click();
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+a' : 'Control+a');
+  await page.keyboard.type('# Export Check\n\nUnique paragraph for export.');
+  await expect(page.getByTestId('preview')).toContainText('Export Check');
+
   const downloadPromise = page.waitForEvent('download');
   await page.getByTestId('export-button').click();
   const download = await downloadPromise;
 
   expect(download.suggestedFilename()).toBe('document.docx');
-  const stream = await download.createReadStream();
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream) {
-    chunks.push(chunk as Buffer);
-  }
-  const data = Buffer.concat(chunks);
+  const data = await downloadBuffer(download);
   // DOCX files are ZIP archives: PK magic bytes and non-trivial size.
   expect(data.length).toBeGreaterThan(1000);
   expect(data[0]).toBe(0x50);
   expect(data[1]).toBe(0x4b);
+
+  const zip = await JSZip.loadAsync(data);
+  const documentXml = await zip.file('word/document.xml')!.async('string');
+  expect(documentXml).toContain('Export Check');
+  expect(documentXml).toContain('Unique paragraph for export.');
+});
+
+test('document title feeds metadata and export filename', async ({ page }) => {
+  await page.getByTestId('settings-toggle').click();
+  await page.getByTestId('doc-title').fill('My Report');
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByTestId('export-button').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('My Report.docx');
+
+  const zip = await JSZip.loadAsync(await downloadBuffer(download));
+  const coreXml = await zip.file('docProps/core.xml')!.async('string');
+  expect(coreXml).toContain('My Report');
+});
+
+test('new document clears the editor and content persists across reload', async ({ page }) => {
+  await page.getByRole('button', { name: 'New document' }).click();
+  await expect(page.getByTestId('word-count')).toHaveText('0 words');
+
+  await page.locator('.monaco-editor').first().click();
+  await page.keyboard.type('# Persisted Title');
+  await expect(page.getByTestId('preview')).toContainText('Persisted Title');
+
+  await page.reload();
+  await expect(page.getByTestId('preview')).toContainText('Persisted Title');
 });
 
 test('dark mode toggles the color scheme', async ({ page }) => {

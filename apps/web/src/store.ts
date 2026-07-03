@@ -7,8 +7,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { DocumentSettings } from '@seamdoc/types';
-import { DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
+import type { DocumentMetadata, DocumentSettings } from '@seamdoc/types';
+import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 
 export const SAMPLE_MARKDOWN = `# Welcome to Seamdoc
 
@@ -38,11 +38,13 @@ interface AppState {
   markdown: string;
   themeId: string;
   settings: DocumentSettings;
+  metadata: DocumentMetadata;
   darkMode: boolean;
   settingsOpen: boolean;
   setMarkdown: (markdown: string) => void;
   setThemeId: (themeId: string) => void;
   updateSettings: (settings: Partial<DocumentSettings>) => void;
+  updateMetadata: (metadata: Partial<DocumentMetadata>) => void;
   toggleDarkMode: () => void;
   setSettingsOpen: (open: boolean) => void;
   newDocument: () => void;
@@ -54,12 +56,15 @@ export const useAppStore = create<AppState>()(
       markdown: SAMPLE_MARKDOWN,
       themeId: 'minimal',
       settings: DEFAULT_DOCUMENT_SETTINGS,
+      metadata: DEFAULT_DOCUMENT_METADATA,
       darkMode: false,
       settingsOpen: false,
       setMarkdown: (markdown) => set({ markdown }),
       setThemeId: (themeId) => set({ themeId }),
       updateSettings: (partial) =>
         set((state) => ({ settings: { ...state.settings, ...partial } })),
+      updateMetadata: (partial) =>
+        set((state) => ({ metadata: { ...state.metadata, ...partial } })),
       toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
       setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
       newDocument: () => set({ markdown: '' }),
@@ -70,6 +75,7 @@ export const useAppStore = create<AppState>()(
         markdown: state.markdown,
         themeId: state.themeId,
         settings: state.settings,
+        metadata: state.metadata,
         darkMode: state.darkMode,
       }),
     },

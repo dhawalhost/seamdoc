@@ -10,7 +10,7 @@ const fieldClass =
 const labelClass = 'block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1';
 
 export function SettingsPanel() {
-  const { settings, updateSettings, setSettingsOpen } = useAppStore();
+  const { settings, metadata, updateSettings, updateMetadata, setSettingsOpen } = useAppStore();
 
   const updateMargin = (side: 'top' | 'right' | 'bottom' | 'left', value: string) => {
     const parsed = Number(value);
@@ -36,6 +36,32 @@ export function SettingsPanel() {
         >
           <X size={16} />
         </button>
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="doc-title">
+          Document title
+        </label>
+        <input
+          id="doc-title"
+          data-testid="doc-title"
+          className={fieldClass}
+          value={metadata.title}
+          onChange={(event) => updateMetadata({ title: event.target.value })}
+        />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="doc-author">
+          Author
+        </label>
+        <input
+          id="doc-author"
+          data-testid="doc-author"
+          className={fieldClass}
+          value={metadata.author}
+          onChange={(event) => updateMetadata({ author: event.target.value })}
+        />
       </div>
 
       <div>

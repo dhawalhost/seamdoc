@@ -3,6 +3,17 @@
 One lesson per entry, newest first. Records corrections and confirmed approaches
 that git history alone doesn't explain.
 
+## Playwright: addInitScript wipes storage on in-test reloads
+
+Clearing localStorage via `addInitScript` re-runs on every navigation and
+breaks persistence tests. Clear once via `page.evaluate` + reload in
+beforeEach instead.
+
+## Feature-list conflict: theme import/export is P0 but roadmapped to v0.2
+
+Resolved via ADR 0002 (roadmap wins as the more specific statement); v0.1 has
+no theme import/export UI.
+
 ## Determinism: docx library randomizes relationship IDs
 
 The `docx` npm package generates random `r:id` relationship identifiers, so
