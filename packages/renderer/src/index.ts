@@ -23,5 +23,10 @@ export type {
   TextRun,
 } from './render-tree.js';
 export { layoutDocument, type LayoutInput } from './layout.js';
+export {
+  validateRenderTree,
+  type RenderTreeIssue,
+  type RenderTreeValidationResult,
+} from './validate.js';
 export { baseRunStyle, headingRunStyle, resolveInlines } from './style-resolver.js';
 export { estimateLineCount, estimateParagraphHeight, estimateRunWidth } from './measure.js';

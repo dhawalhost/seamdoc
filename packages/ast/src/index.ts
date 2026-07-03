@@ -7,9 +7,12 @@
  */
 
 export type {
+  AlignType,
+  BlockContent,
   Blockquote,
   Break,
   Code,
+  DefinitionContent,
   Emphasis,
   Heading,
   Image,

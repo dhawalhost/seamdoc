@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "remark": "^15.0.1",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "@seamdoc/ast": "workspace:*"
   },
   "devDependencies": {
     "@types/mdast": "^4.0.4"

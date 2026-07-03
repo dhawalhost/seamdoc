@@ -3,7 +3,7 @@
  * Converts Markdown text into an mdast tree. Contains no presentation logic.
  */
 
-import type { Root } from 'mdast';
+import type { Root } from '@seamdoc/ast';
 import { remark } from 'remark';
 import remarkGfm from 'remark-gfm';
 
@@ -13,4 +13,4 @@ export function parseMarkdown(markdown: string): Root {
   return processor.parse(markdown);
 }
 
-export type { Root as MarkdownAst } from 'mdast';
+export type { Root as MarkdownAst } from '@seamdoc/ast';

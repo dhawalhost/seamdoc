@@ -18,7 +18,7 @@ import type {
   RootContent,
   Table,
   TableRow,
-} from 'mdast';
+} from '@seamdoc/ast';
 import type { DocumentMetadata } from '@seamdoc/types';
 import { DEFAULT_DOCUMENT_METADATA, SDM_VERSION } from '@seamdoc/shared';
 import type {

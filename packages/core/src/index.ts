@@ -15,8 +15,8 @@ import type {
 import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 import { parseMarkdown } from '@seamdoc/parser';
 import { fromMdast, validateDocument, type SdmDocument } from '@seamdoc/semantic-model';
-import { layoutDocument, type RenderDocument } from '@seamdoc/renderer';
-import { getBuiltinTheme, minimalTheme, type Theme } from '@seamdoc/themes';
+import { layoutDocument, validateRenderTree, type RenderDocument } from '@seamdoc/renderer';
+import { getBuiltinTheme, minimalTheme, validateTheme, type Theme } from '@seamdoc/themes';
 
 export interface RenderOptions {
   readonly theme?: Theme | string;
@@ -40,7 +40,10 @@ function resolveTheme(theme: Theme | string | undefined): Theme {
     // continues (docs/02-architecture/rendering-pipeline.md, error handling).
     return getBuiltinTheme(theme) ?? minimalTheme;
   }
-  return theme;
+  // Invalid themes must never reach the renderer
+  // (docs/02-architecture/theme-engine.md); fall back to the default theme.
+  const validation = validateTheme(theme);
+  return validation.valid ? theme : minimalTheme;
 }
 
 /** Runs the pipeline from Markdown text to a Render Tree. */
@@ -61,6 +64,15 @@ export function renderMarkdown(markdown: string, options: RenderOptions = {}): R
   }
 
   const renderDocument = layoutDocument({ document: semanticDocument, theme, settings });
+
+  const treeValidation = validateRenderTree(renderDocument);
+  if (!treeValidation.valid) {
+    const details = treeValidation.issues
+      .map((issue) => `${issue.path}: ${issue.message}`)
+      .join('; ');
+    throw new Error(`Render tree validation failed: ${details}`);
+  }
+
   return { semanticDocument, renderDocument, theme, settings };
 }
 

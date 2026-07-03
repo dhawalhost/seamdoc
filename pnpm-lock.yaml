@@ -98,6 +98,9 @@ importers:
 
   packages/parser:
     dependencies:
+      '@seamdoc/ast':
+        specifier: workspace:*
+        version: link:../ast
       remark:
         specifier: ^15.0.1
         version: 15.0.1
@@ -133,6 +136,9 @@ importers:
 
   packages/semantic-model:
     dependencies:
+      '@seamdoc/ast':
+        specifier: workspace:*
+        version: link:../ast
       '@seamdoc/shared':
         specifier: workspace:*
         version: link:../shared
