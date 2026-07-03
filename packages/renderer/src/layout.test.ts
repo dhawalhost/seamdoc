@@ -86,6 +86,21 @@ describe('layoutDocument', () => {
     expect(table.rows[0]?.header).toBe(true);
   });
 
+  it('applies document typography overrides on top of the theme', () => {
+    const tree = layout('body text', {
+      ...DEFAULT_DOCUMENT_SETTINGS,
+      fontFamily: 'Georgia',
+      fontSize: 14,
+      lineSpacing: 2,
+      paragraphSpacing: 20,
+    });
+    const paragraph = tree.pages[0]?.children[0] as RenderParagraph;
+    expect(paragraph.runs[0]?.style.fontFamily).toBe('Georgia');
+    expect(paragraph.runs[0]?.style.fontSize).toBe(14);
+    expect(paragraph.lineHeight).toBe(2);
+    expect(paragraph.spacing.after).toBe(20);
+  });
+
   it('is deterministic for identical input', () => {
     const markdown = '# Doc\n\nBody with **bold**.\n\n- item\n';
     expect(layout(markdown)).toEqual(layout(markdown));

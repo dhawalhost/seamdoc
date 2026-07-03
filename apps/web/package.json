@@ -1,0 +1,39 @@
+{
+  "name": "@seamdoc/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Seamdoc web application",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run --passWithNoTests",
+    "test:e2e": "playwright test",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@seamdoc/core": "workspace:*",
+    "@seamdoc/exporter-docx": "workspace:*",
+    "@seamdoc/renderer": "workspace:*",
+    "@seamdoc/shared": "workspace:*",
+    "@seamdoc/themes": "workspace:*",
+    "@seamdoc/types": "workspace:*",
+    "lucide-react": "^0.525.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zustand": "^5.0.6",
+    "monaco-editor": "^0.52.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.2",
+    "@tailwindcss/vite": "^4.1.11",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "tailwindcss": "^4.1.11",
+    "vite": "^7.0.0"
+  }
+}

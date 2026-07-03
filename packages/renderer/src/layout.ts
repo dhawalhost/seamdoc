@@ -37,8 +37,39 @@ export interface LayoutInput {
   readonly settings: DocumentSettings;
 }
 
+/**
+ * Applies document-level typography overrides on top of the active theme,
+ * following the resolution order in docs/02-architecture/theme-engine.md
+ * (base theme → user overrides → final style).
+ */
+function applySettingsOverrides(theme: Theme, settings: DocumentSettings): Theme {
+  const { fontFamily, fontSize, lineSpacing, paragraphSpacing } = settings;
+  if (
+    fontFamily === null &&
+    fontSize === null &&
+    lineSpacing === null &&
+    paragraphSpacing === null
+  ) {
+    return theme;
+  }
+  return {
+    ...theme,
+    paragraph: {
+      ...theme.paragraph,
+      fontFamily: fontFamily ?? theme.paragraph.fontFamily,
+      fontSize: fontSize ?? theme.paragraph.fontSize,
+      lineHeight: lineSpacing ?? theme.paragraph.lineHeight,
+      spacing:
+        paragraphSpacing === null
+          ? theme.paragraph.spacing
+          : { ...theme.paragraph.spacing, after: paragraphSpacing },
+    },
+  };
+}
+
 export function layoutDocument(input: LayoutInput): RenderDocument {
-  const { document, theme, settings } = input;
+  const { document, settings } = input;
+  const theme = applySettingsOverrides(input.theme, settings);
   const pageSize = resolvePageSize(settings);
   const contentWidth = pageSize.width - settings.margins.left - settings.margins.right;
   const contentHeight = pageSize.height - settings.margins.top - settings.margins.bottom;

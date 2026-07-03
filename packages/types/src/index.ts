@@ -22,7 +22,12 @@ export interface PageMargins {
   readonly left: number;
 }
 
-/** User-facing document configuration, resolved before rendering. */
+/**
+ * User-facing document configuration, resolved before rendering.
+ * Typography fields are overrides layered on top of the active theme
+ * (docs/02-architecture/theme-engine.md, theme resolution order); null means
+ * "use the theme value".
+ */
 export interface DocumentSettings {
   readonly pageSize: PageSizeName;
   readonly orientation: PageOrientation;
@@ -32,6 +37,14 @@ export interface DocumentSettings {
   /** Static footer text; empty string disables the footer. */
   readonly footer: string;
   readonly pageNumbers: boolean;
+  /** Body font family override; null uses the theme font. */
+  readonly fontFamily: string | null;
+  /** Body font size override in points; null uses the theme size. */
+  readonly fontSize: number | null;
+  /** Line spacing multiplier override; null uses the theme value. */
+  readonly lineSpacing: number | null;
+  /** Space after paragraphs in points; null uses the theme value. */
+  readonly paragraphSpacing: number | null;
 }
 
 export interface DocumentMetadata {

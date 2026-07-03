@@ -23,6 +23,10 @@ export const DEFAULT_DOCUMENT_SETTINGS: DocumentSettings = {
   header: '',
   footer: '',
   pageNumbers: false,
+  fontFamily: null,
+  fontSize: null,
+  lineSpacing: null,
+  paragraphSpacing: null,
 };
 
 export const DEFAULT_DOCUMENT_METADATA: DocumentMetadata = {
