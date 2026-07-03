@@ -20,5 +20,13 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "eslint src"
+  },
+  "dependencies": {
+    "@seamdoc/types": "workspace:*",
+    "@seamdoc/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.4",
+    "@seamdoc/parser": "workspace:*"
   }
 }

@@ -20,5 +20,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.4"
   }
 }
