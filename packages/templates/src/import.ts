@@ -63,7 +63,7 @@ export async function importTemplate(
   const coreFile = zip.file('docProps/core.xml');
   const coreXml = coreFile === null ? '' : await coreFile.async('string');
 
-  return {
+  const profile: TemplateProfile = {
     version: 1,
     metadata: {
       name: options.name ?? readCoreProperty(coreXml, 'dc:title') ?? 'Imported template',
@@ -80,6 +80,16 @@ export async function importTemplate(
     hasHeader: documentXml.includes('<w:headerReference'),
     hasFooter: documentXml.includes('<w:footerReference'),
   };
+
+  // Final pipeline stage: validate before handing out the profile.
+  const errors = validateTemplateProfile(profile).filter((issue) => issue.severity === 'error');
+  if (errors.length > 0) {
+    throw new TemplateImportError(
+      `The template failed validation: ${errors.map((issue) => issue.message).join(' ')}`,
+      errors,
+    );
+  }
+  return profile;
 }
 
 /** Parses w:style elements from styles.xml without a full XML DOM. */
@@ -148,13 +158,22 @@ export function autoMapStyles(styles: readonly WordStyle[]): StyleMapping {
   return mapping;
 }
 
-/** Reads page size, orientation, and margins from the last sectPr. */
+/** Returns the capture of the LAST match: the body-level (final) sectPr. */
+function lastMatch(pattern: RegExp, xml: string): string | undefined {
+  let result: string | undefined;
+  for (const match of xml.matchAll(pattern)) {
+    result = match[1];
+  }
+  return result;
+}
+
+/** Reads page size, orientation, and margins from the last (body) sectPr. */
 export function extractPageSettings(documentXml: string): Partial<DocumentSettings> {
   const settings: {
     -readonly [K in keyof DocumentSettings]?: DocumentSettings[K];
   } = {};
 
-  const pgSz = /<w:pgSz\s+([^/>]*)\/?>/.exec(documentXml)?.[1];
+  const pgSz = lastMatch(/<w:pgSz\s+([^/>]*)\/?>/g, documentXml);
   if (pgSz !== undefined) {
     const width = twipsAttr(pgSz, 'w:w');
     const height = twipsAttr(pgSz, 'w:h');
@@ -168,7 +187,7 @@ export function extractPageSettings(documentXml: string): Partial<DocumentSettin
     }
   }
 
-  const pgMar = /<w:pgMar\s+([^/>]*)\/?>/.exec(documentXml)?.[1];
+  const pgMar = lastMatch(/<w:pgMar\s+([^/>]*)\/?>/g, documentXml);
   if (pgMar !== undefined) {
     const top = twipsAttr(pgMar, 'w:top');
     const right = twipsAttr(pgMar, 'w:right');

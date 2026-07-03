@@ -45,6 +45,8 @@ interface AppState {
   customThemes: Theme[];
   /** Active DOCX template profile; null when no template is applied. */
   template: TemplateProfile | null;
+  /** Settings values overridden by the template, for restore on removal. */
+  settingsBeforeTemplate: Partial<DocumentSettings> | null;
   darkMode: boolean;
   settingsOpen: boolean;
   setMarkdown: (markdown: string) => void;
@@ -77,6 +79,7 @@ export const useAppStore = create<AppState>()(
       metadata: DEFAULT_DOCUMENT_METADATA,
       customThemes: [],
       template: null,
+      settingsBeforeTemplate: null,
       darkMode: false,
       settingsOpen: false,
       setMarkdown: (markdown) => set({ markdown }),
@@ -90,13 +93,28 @@ export const useAppStore = create<AppState>()(
           themeId: theme.metadata.id,
         })),
       setTemplate: (template) =>
-        set((state) => ({
-          template,
+        set((state) => {
+          if (template === null) {
+            // Restore the page setup the template had overridden.
+            return {
+              template: null,
+              settingsBeforeTemplate: null,
+              settings: { ...state.settings, ...state.settingsBeforeTemplate },
+            };
+          }
           // Templates preserve the source document's page setup
           // (docs/02-architecture/template-engine.md, preserved elements).
-          settings:
-            template === null ? state.settings : { ...state.settings, ...template.pageSettings },
-        })),
+          const overridden: Partial<DocumentSettings> = {};
+          for (const key of Object.keys(template.pageSettings) as (keyof DocumentSettings)[]) {
+            Object.assign(overridden, { [key]: state.settings[key] });
+          }
+          return {
+            template,
+            settingsBeforeTemplate:
+              state.settingsBeforeTemplate === null ? overridden : state.settingsBeforeTemplate,
+            settings: { ...state.settings, ...template.pageSettings },
+          };
+        }),
       updateTemplateMapping: (mapping) =>
         set((state) =>
           state.template === null
@@ -120,6 +138,7 @@ export const useAppStore = create<AppState>()(
         metadata: state.metadata,
         customThemes: state.customThemes,
         template: state.template,
+        settingsBeforeTemplate: state.settingsBeforeTemplate,
         darkMode: state.darkMode,
       }),
     },

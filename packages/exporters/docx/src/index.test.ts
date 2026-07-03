@@ -152,6 +152,10 @@ describe('DocxExporter', () => {
     // Template-styled paragraphs must not carry direct font formatting.
     const headingChunk = xml.slice(xml.indexOf('AcmeHeading1'), xml.indexOf('Golden Document'));
     expect(headingChunk).not.toContain('<w:rFonts');
+    // List item paragraphs also follow the mapped paragraph style.
+    const bulletIndex = xml.indexOf('Bullet one');
+    const bulletChunk = xml.slice(xml.lastIndexOf('<w:p>', bulletIndex), bulletIndex);
+    expect(bulletChunk).toContain('<w:pStyle w:val="AcmeBody"/>');
   });
 
   it('rejects render trees with a wrong version', async () => {

@@ -43,6 +43,7 @@ export function Toolbar() {
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
   const [themeError, setThemeError] = useState('');
   const [templateError, setTemplateError] = useState('');
+  const [exportError, setExportError] = useState('');
 
   const openFile = async (file: File | undefined) => {
     if (file === undefined) {
@@ -53,6 +54,7 @@ export function Toolbar() {
 
   const handleExport = async (format: ExportFormat) => {
     setExporting(format);
+    setExportError('');
     try {
       await downloadDocument(
         format,
@@ -61,6 +63,10 @@ export function Toolbar() {
         settings,
         metadata,
         template,
+      );
+    } catch (error) {
+      setExportError(
+        `Export failed: ${error instanceof Error ? error.message : 'unexpected error'}`,
       );
     } finally {
       setExporting(null);
@@ -269,6 +275,12 @@ export function Toolbar() {
       </button>
 
       <div className="flex-1" />
+
+      {exportError !== '' && (
+        <span role="alert" data-testid="export-error" className="mr-2 text-xs text-red-600">
+          {exportError}
+        </span>
+      )}
 
       <span
         className="mr-2 text-xs text-neutral-500 dark:text-neutral-400"

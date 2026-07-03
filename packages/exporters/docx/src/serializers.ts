@@ -185,23 +185,34 @@ export function serializeQuote(node: RenderQuote, mapping: StyleMapping = NO_MAP
   });
 }
 
-export function serializeList(node: RenderList, depth = 0): DocxBlock[] {
+export function serializeList(
+  node: RenderList,
+  mapping: StyleMapping = NO_MAPPING,
+  depth = 0,
+): DocxBlock[] {
   const blocks: DocxBlock[] = [];
+  const templateStyled = mapping.paragraph !== undefined;
   for (const item of node.items) {
     let firstParagraphDone = false;
     for (const child of item.children) {
       if (child.type === 'paragraph' && !firstParagraphDone) {
         firstParagraphDone = true;
+        const markerStyle = child.runs[0]?.style;
+        const marker = new DocxTextRun({
+          text: `${item.marker} `,
+          // Marker typography follows the first run; the docx default
+          // applies when the item has no runs or a template style governs.
+          ...(markerStyle === undefined || templateStyled
+            ? {}
+            : {
+                font: markerStyle.fontFamily,
+                size: pointsToHalfPoints(markerStyle.fontSize),
+              }),
+        });
         blocks.push(
           new Paragraph({
-            children: [
-              new DocxTextRun({
-                text: `${item.marker} `,
-                font: child.runs[0]?.style.fontFamily ?? 'Calibri',
-                size: pointsToHalfPoints(child.runs[0]?.style.fontSize ?? 11),
-              }),
-              ...serializeRuns(child.runs),
-            ],
+            ...(templateStyled ? { style: mapping.paragraph } : {}),
+            children: [marker, ...serializeRuns(child.runs, templateStyled)],
             indent: { left: pointsToTwips(node.indent * (depth + 1)) },
             spacing: {
               before: pointsToTwips(node.spacing.before),
@@ -210,9 +221,9 @@ export function serializeList(node: RenderList, depth = 0): DocxBlock[] {
           }),
         );
       } else if (child.type === 'list') {
-        blocks.push(...serializeList(child, depth + 1));
+        blocks.push(...serializeList(child, mapping, depth + 1));
       } else {
-        blocks.push(...serializeBlock(child));
+        blocks.push(...serializeBlock(child, mapping));
       }
     }
   }
@@ -310,7 +321,7 @@ export function serializeBlock(block: RenderBlock, mapping: StyleMapping = NO_MA
     case 'quote':
       return serializeQuote(block, mapping);
     case 'list':
-      return serializeList(block);
+      return serializeList(block, mapping);
     case 'table':
       return serializeTable(block, mapping);
     case 'image':

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import JSZip from 'jszip';
 import {
   autoMapStyles,
+  extractPageSettings,
   extractStyles,
   importTemplate,
   TemplateImportError,
@@ -102,6 +103,18 @@ describe('importTemplate', () => {
     zip.file('readme.txt', 'not a docx');
     const data = await zip.generateAsync({ type: 'arraybuffer' });
     await expect(importTemplate(data)).rejects.toThrow('missing word/styles.xml');
+  });
+});
+
+describe('extractPageSettings', () => {
+  it('uses the last sectPr when a document has multiple sections', () => {
+    const xml = `<w:document><w:body>
+      <w:p><w:pPr><w:sectPr><w:pgSz w:w="12240" w:h="15840"/></w:sectPr></w:pPr></w:p>
+      <w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720"/></w:sectPr>
+    </w:body></w:document>`;
+    const settings = extractPageSettings(xml);
+    expect(settings.pageSize).toBe('A4');
+    expect(settings.margins).toEqual({ top: 36, right: 36, bottom: 36, left: 36 });
   });
 });
 

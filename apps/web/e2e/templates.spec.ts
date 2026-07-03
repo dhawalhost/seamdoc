@@ -13,7 +13,7 @@ const DOCUMENT_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
   <w:body>
     <w:p/>
     <w:sectPr>
-      <w:pgSz w:w="11906" w:h="16838"/>
+      <w:pgSz w:w="12240" w:h="15840"/>
       <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/>
     </w:sectPr>
   </w:body>
@@ -45,10 +45,10 @@ test('imports a DOCX template and applies it to the export', async ({ page }) =>
     buffer: await buildTemplateDocx(),
   });
 
-  // The template becomes active and preserves its page setup (A4).
+  // The template becomes active and preserves its page setup (Letter).
   await expect(page.getByTestId('active-template')).toContainText('Acme Corporate');
   await page.getByTestId('settings-toggle').click();
-  await expect(page.getByTestId('page-size')).toHaveValue('A4');
+  await expect(page.getByTestId('page-size')).toHaveValue('Letter');
   await expect(page.getByTestId('mapping-h1')).toHaveValue('Heading1');
   await expect(page.getByTestId('mapping-paragraph')).toHaveValue('Normal');
 
@@ -78,12 +78,15 @@ test('mapping can be adjusted and the template removed', async ({ page }) => {
   await expect(page.getByTestId('active-template')).toBeVisible();
 
   await page.getByTestId('settings-toggle').click();
+  await expect(page.getByTestId('page-size')).toHaveValue('Letter');
   await page.getByTestId('mapping-h1').selectOption('Quote');
   await expect(page.getByTestId('mapping-h1')).toHaveValue('Quote');
 
   await page.getByTestId('remove-template').click();
   await expect(page.getByTestId('active-template')).not.toBeVisible();
   await expect(page.getByTestId('template-mapping')).not.toBeVisible();
+  // Removing the template restores the page setup it had overridden (A4 default).
+  await expect(page.getByTestId('page-size')).toHaveValue('A4');
 });
 
 test('rejects a non-DOCX template file with a visible error', async ({ page }) => {
