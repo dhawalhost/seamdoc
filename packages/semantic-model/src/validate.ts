@@ -5,13 +5,7 @@
  */
 
 import { SDM_VERSION } from '@seamdoc/shared';
-import type {
-  SdmBlock,
-  SdmDocument,
-  SdmInline,
-  SdmListItem,
-  SdmTableRow,
-} from './nodes.js';
+import type { SdmBlock, SdmDocument, SdmInline, SdmListItem, SdmTableRow } from './nodes.js';
 
 const BLOCK_TYPES: ReadonlySet<SdmBlock['type']> = new Set([
   'heading',
@@ -132,14 +126,21 @@ function validateTableRow(row: SdmTableRow, path: string, issues: ValidationIssu
   }
   row.cells.forEach((cell, index) => {
     if (cell.type !== 'tableCell') {
-      issues.push({ path: `${path}/cells/${index}`, message: 'Table cell must have type "tableCell".' });
+      issues.push({
+        path: `${path}/cells/${index}`,
+        message: 'Table cell must have type "tableCell".',
+      });
       return;
     }
     validateInlines(cell.children, `${path}/cells/${index}/children`, issues);
   });
 }
 
-function validateInlines(inlines: readonly SdmInline[], path: string, issues: ValidationIssue[]): void {
+function validateInlines(
+  inlines: readonly SdmInline[],
+  path: string,
+  issues: ValidationIssue[],
+): void {
   inlines.forEach((inline, index) => {
     const inlinePath = `${path}/${index}`;
     if (!INLINE_TYPES.has(inline.type)) {
@@ -159,7 +160,10 @@ function validateInlines(inlines: readonly SdmInline[], path: string, issues: Va
         break;
       case 'inlineCode':
         if (typeof inline.value !== 'string') {
-          issues.push({ path: `${inlinePath}/value`, message: 'Inline code value must be a string.' });
+          issues.push({
+            path: `${inlinePath}/value`,
+            message: 'Inline code value must be a string.',
+          });
         }
         break;
       case 'link':

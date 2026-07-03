@@ -14,7 +14,9 @@ export function PreviewToolbar() {
       data-no-print
       data-testid="preview-toolbar"
     >
-      <span className="mr-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">Preview</span>
+      <span className="mr-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">
+        Preview
+      </span>
 
       <button
         type="button"

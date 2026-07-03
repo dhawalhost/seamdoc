@@ -4,7 +4,13 @@ import { fromMdast } from '@seamdoc/semantic-model';
 import { DEFAULT_DOCUMENT_SETTINGS, PAGE_SIZES, RENDER_TREE_VERSION } from '@seamdoc/shared';
 import { minimalTheme } from '@seamdoc/themes';
 import { layoutDocument } from './layout.js';
-import type { RenderCodeBlock, RenderHeading, RenderList, RenderParagraph, RenderTable } from './render-tree.js';
+import type {
+  RenderCodeBlock,
+  RenderHeading,
+  RenderList,
+  RenderParagraph,
+  RenderTable,
+} from './render-tree.js';
 
 function layout(markdown: string, settings = DEFAULT_DOCUMENT_SETTINGS) {
   const document = fromMdast(parseMarkdown(markdown));

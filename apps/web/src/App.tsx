@@ -16,7 +16,9 @@ const EditorPane = lazy(async () => {
 type ScrollSource = 'none' | 'editor' | 'preview';
 
 function isMarkdownFile(file: File): boolean {
-  return file.name.endsWith('.md') || file.name.endsWith('.markdown') || file.type === 'text/markdown';
+  return (
+    file.name.endsWith('.md') || file.name.endsWith('.markdown') || file.type === 'text/markdown'
+  );
 }
 
 export default function App() {

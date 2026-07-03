@@ -122,9 +122,7 @@ export function Toolbar() {
   const stats = formatDocumentStats(computeDocumentStats(markdown));
   const activeTheme = resolveActiveTheme(themeId, customThemes);
   const themeMetadata =
-    typeof activeTheme === 'string'
-      ? getBuiltinTheme(themeId)?.metadata
-      : activeTheme.metadata;
+    typeof activeTheme === 'string' ? getBuiltinTheme(themeId)?.metadata : activeTheme.metadata;
 
   const exportButtonClass = (format: ExportFormat) => {
     const isDefault = format === defaultExportFormat;

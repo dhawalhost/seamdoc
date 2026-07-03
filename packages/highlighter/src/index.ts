@@ -78,9 +78,9 @@ function plainLines(source: string, fallbackColor: string): readonly (readonly H
   if (source === '') {
     return [];
   }
-  return source.split('\n').map((line) => [
-    { text: line, color: fallbackColor, bold: false, italic: false },
-  ]);
+  return source
+    .split('\n')
+    .map((line) => [{ text: line, color: fallbackColor, bold: false, italic: false }]);
 }
 
 function tokenStyle(fontStyle: number | undefined): { bold: boolean; italic: boolean } {

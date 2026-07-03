@@ -64,9 +64,7 @@ describe('PdfExporter', () => {
     // PDF info strings are UTF-16BE hex literals; "Seamdoc" as producer.
     expect(text).toContain('<FEFF005300650061006D0064006F0063>');
     // "Report Title" as title.
-    expect(text).toContain(
-      '<FEFF005200650070006F007200740020005400690074006C0065>',
-    );
+    expect(text).toContain('<FEFF005200650070006F007200740020005400690074006C0065>');
   });
 
   it('produces one PDF page per render page', async () => {
@@ -87,9 +85,9 @@ describe('PdfExporter', () => {
 
   it('rejects unsupported render tree versions and empty documents', async () => {
     const doc = render();
-    await expect(
-      new PdfExporter().export({ ...doc, version: 999 }, settings),
-    ).rejects.toThrow('Unsupported render tree version');
+    await expect(new PdfExporter().export({ ...doc, version: 999 }, settings)).rejects.toThrow(
+      'Unsupported render tree version',
+    );
     await expect(new PdfExporter().export({ ...doc, pages: [] }, settings)).rejects.toThrow(
       'no pages',
     );

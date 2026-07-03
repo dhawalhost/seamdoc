@@ -136,7 +136,9 @@ export function autoMapStyles(styles: readonly WordStyle[]): StyleMapping {
     mapping.paragraph = paragraph.id;
   }
 
-  const quote = byName((name) => name === 'quote' || name === 'intense quote' || name === 'block quote');
+  const quote = byName(
+    (name) => name === 'quote' || name === 'intense quote' || name === 'block quote',
+  );
   if (quote !== undefined) {
     mapping.quote = quote.id;
   }
@@ -244,7 +246,10 @@ export function validateTemplateProfile(
     }
   }
   if (profile.mapping.paragraph === undefined) {
-    issues.push({ severity: 'warning', message: 'No paragraph style mapped; theme styling is used.' });
+    issues.push({
+      severity: 'warning',
+      message: 'No paragraph style mapped; theme styling is used.',
+    });
   }
   return issues;
 }

@@ -83,7 +83,10 @@ function serializeRuns(
   });
 }
 
-export function serializeHeading(node: RenderHeading, mapping: StyleMapping = NO_MAPPING): DocxBlock[] {
+export function serializeHeading(
+  node: RenderHeading,
+  mapping: StyleMapping = NO_MAPPING,
+): DocxBlock[] {
   const templateStyle = mapping[`h${node.level}`];
   if (templateStyle !== undefined) {
     return [new Paragraph({ style: templateStyle, children: serializeRuns(node.runs, true) })];
@@ -169,9 +172,7 @@ export function serializeQuote(node: RenderQuote, mapping: StyleMapping = NO_MAP
   return node.children.flatMap((child) => {
     if (child.type === 'paragraph') {
       if (mapping.quote !== undefined) {
-        return [
-          new Paragraph({ style: mapping.quote, children: serializeRuns(child.runs, true) }),
-        ];
+        return [new Paragraph({ style: mapping.quote, children: serializeRuns(child.runs, true) })];
       }
       return [
         new Paragraph({
@@ -315,7 +316,10 @@ export function serializeRule(node: RenderRule): DocxBlock[] {
   ];
 }
 
-export function serializeBlock(block: RenderBlock, mapping: StyleMapping = NO_MAPPING): DocxBlock[] {
+export function serializeBlock(
+  block: RenderBlock,
+  mapping: StyleMapping = NO_MAPPING,
+): DocxBlock[] {
   switch (block.type) {
     case 'heading':
       return serializeHeading(block, mapping);

@@ -79,13 +79,7 @@ function ListItems({ items, ordered }: { items: readonly RenderListItem[]; order
   );
 }
 
-function ImageBlock({
-  block,
-  spacing,
-}: {
-  block: RenderImage;
-  spacing: CSSProperties;
-}): ReactNode {
+function ImageBlock({ block, spacing }: { block: RenderImage; spacing: CSSProperties }): ReactNode {
   if (isEmbeddableImageSrc(block.src)) {
     return (
       <div style={{ ...spacing, textAlign: block.alignment }} data-preview="image">

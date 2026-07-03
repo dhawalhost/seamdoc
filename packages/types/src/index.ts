@@ -63,16 +63,7 @@ export type ExportFormat = 'docx' | 'pdf' | 'html' | 'odt' | 'epub';
 
 /** Semantic slots a template can map to native document styles. */
 export type TemplateMappableNode =
-  | 'h1'
-  | 'h2'
-  | 'h3'
-  | 'h4'
-  | 'h5'
-  | 'h6'
-  | 'paragraph'
-  | 'quote'
-  | 'code'
-  | 'table';
+  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'paragraph' | 'quote' | 'code' | 'table';
 
 /**
  * Format-neutral template data exporters may honor

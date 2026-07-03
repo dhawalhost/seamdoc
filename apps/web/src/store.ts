@@ -81,7 +81,10 @@ interface AppState {
 }
 
 /** Resolves the active theme: custom themes first, then built-ins by id. */
-export function resolveActiveTheme(themeId: string, customThemes: readonly Theme[]): Theme | string {
+export function resolveActiveTheme(
+  themeId: string,
+  customThemes: readonly Theme[],
+): Theme | string {
   return customThemes.find((theme) => theme.metadata.id === themeId) ?? themeId;
 }
 
@@ -147,7 +150,9 @@ export const useAppStore = create<AppState>()(
         set((state) =>
           state.template === null
             ? {}
-            : { template: { ...state.template, mapping: { ...state.template.mapping, ...mapping } } },
+            : {
+                template: { ...state.template, mapping: { ...state.template.mapping, ...mapping } },
+              },
         ),
       updateSettings: (partial) =>
         set((state) => ({ settings: { ...state.settings, ...partial } })),

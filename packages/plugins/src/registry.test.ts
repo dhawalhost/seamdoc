@@ -69,9 +69,9 @@ describe('PluginRegistry', () => {
     const registry = new PluginRegistry();
     registry.register(upperCase);
     expect(() => registry.register(upperCase)).toThrow('already registered');
-    expect(() =>
-      registry.register({ ...upperCase, id: 'Not Kebab' } as never),
-    ).toThrow('Invalid plugin');
+    expect(() => registry.register({ ...upperCase, id: 'Not Kebab' } as never)).toThrow(
+      'Invalid plugin',
+    );
   });
 
   it('runs lifecycle hooks on register and unregister', () => {

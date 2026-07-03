@@ -74,7 +74,9 @@ async function breakLines(
   for (const run of runs) {
     const font = await fonts.fontFor(run.style);
     // Split while keeping separators so spacing is preserved.
-    const words = sanitizeText(run.text).split(/(\s+)/).filter((word) => word !== '');
+    const words = sanitizeText(run.text)
+      .split(/(\s+)/)
+      .filter((word) => word !== '');
     for (const word of words) {
       const width = font.widthOfTextAtSize(word, run.style.fontSize);
       if (lineWidth + width > maxWidth && lineWidth > 0 && word.trim() !== '') {

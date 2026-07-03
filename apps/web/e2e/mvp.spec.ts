@@ -175,9 +175,9 @@ test('syntax highlighting colors code tokens in preview', async ({ page }) => {
 
   const code = page.locator('[data-preview="code"]');
   await expect(code).toBeVisible();
-  const colors = await code.locator('span').evaluateAll((spans) =>
-    [...new Set(spans.map((span) => getComputedStyle(span).color))],
-  );
+  const colors = await code
+    .locator('span')
+    .evaluateAll((spans) => [...new Set(spans.map((span) => getComputedStyle(span).color))]);
   expect(colors.length).toBeGreaterThan(1);
 });
 
@@ -275,7 +275,5 @@ test('preview scroll syncs when the preview pane is scrolled', async ({ page }) 
   await preview.evaluate((el) => {
     el.scrollTop = el.scrollHeight;
   });
-  await expect
-    .poll(async () => preview.evaluate((el) => el.scrollTop))
-    .toBeGreaterThan(before);
+  await expect.poll(async () => preview.evaluate((el) => el.scrollTop)).toBeGreaterThan(before);
 });

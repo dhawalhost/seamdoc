@@ -10,7 +10,15 @@ import type { RunStyle } from '@seamdoc/renderer';
 
 type FontFamily = 'serif' | 'sans' | 'mono';
 
-const SERIF_HINTS = ['times', 'georgia', 'garamond', 'cambria', 'palatino', 'book antiqua', 'serif'];
+const SERIF_HINTS = [
+  'times',
+  'georgia',
+  'garamond',
+  'cambria',
+  'palatino',
+  'book antiqua',
+  'serif',
+];
 const MONO_HINTS = ['courier', 'consolas', 'menlo', 'monaco', 'mono', 'code'];
 
 function classifyFamily(fontFamily: string): FontFamily {

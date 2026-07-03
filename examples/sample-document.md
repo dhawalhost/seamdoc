@@ -17,12 +17,12 @@ Everything runs in the browser — your content never leaves your device.
 
 ## Table
 
-| Feature   | Status |
-| :-------- | -----: |
-| Editor    | Ready  |
-| Preview   | Ready  |
-| DOCX      | Ready  |
-| PDF       | Ready  |
+| Feature | Status |
+| :------ | -----: |
+| Editor  |  Ready |
+| Preview |  Ready |
+| DOCX    |  Ready |
+| PDF     |  Ready |
 
 ## Quote and code
 

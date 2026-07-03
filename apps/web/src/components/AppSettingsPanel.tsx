@@ -30,7 +30,10 @@ export function AppSettingsPanel() {
       aria-labelledby="app-settings-heading"
     >
       <div className="flex items-center justify-between">
-        <h2 id="app-settings-heading" className="text-sm font-semibold text-neutral-900 dark:text-white">
+        <h2
+          id="app-settings-heading"
+          className="text-sm font-semibold text-neutral-900 dark:text-white"
+        >
           App preferences
         </h2>
         <button

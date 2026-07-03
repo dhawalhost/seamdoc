@@ -17,7 +17,9 @@ export function EditorToolbar({ onFind, onReplace }: EditorToolbarProps) {
       data-no-print
       data-testid="editor-toolbar"
     >
-      <span className="mr-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">Editor</span>
+      <span className="mr-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">
+        Editor
+      </span>
 
       <button
         type="button"

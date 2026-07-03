@@ -18,7 +18,9 @@ describe('highlightCodeToLines', () => {
     await initHighlighter();
     const lines = highlightCodeToLines('alpha beta', 'mermaid', '#111111');
     expect(lines).toHaveLength(1);
-    expect(lines[0]).toEqual([{ text: 'alpha beta', color: '#111111', bold: false, italic: false }]);
+    expect(lines[0]).toEqual([
+      { text: 'alpha beta', color: '#111111', bold: false, italic: false },
+    ]);
   });
 
   it('maps common language aliases', async () => {
