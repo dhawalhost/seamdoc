@@ -3,6 +3,19 @@
 One lesson per entry, newest first. Records corrections and confirmed approaches
 that git history alone doesn't explain.
 
+## Playwright serves the built app, so build before e2e
+
+`playwright.config.ts` uses `vite preview`, which serves `dist/`. New UI won't
+exist in the test run until `pnpm build`; symptoms look like missing elements,
+not build errors.
+
+## pdf-lib standard fonts only encode WinAnsi
+
+`drawText` throws on characters outside WinAnsi with the 14 standard fonts.
+The PDF exporter sanitizes text (unencodable chars become `?`); ADR 0003 also
+covers font substitution and image placeholders (privacy doctrine forbids
+fetching remote images at export time).
+
 ## Playwright: addInitScript wipes storage on in-test reloads
 
 Clearing localStorage via `addInitScript` re-runs on every navigation and

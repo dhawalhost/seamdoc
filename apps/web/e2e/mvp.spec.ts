@@ -91,6 +91,22 @@ test('exports a DOCX whose content matches the document', async ({ page }) => {
   expect(documentXml).toContain('Unique paragraph for export.');
 });
 
+test('exports a PDF with the correct header bytes', async ({ page }) => {
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByTestId('export-pdf-button').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/\.pdf$/);
+
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk as Buffer);
+  }
+  const bytes = Buffer.concat(chunks);
+  expect(bytes.subarray(0, 5).toString('utf8')).toBe('%PDF-');
+  expect(bytes.length).toBeGreaterThan(1000);
+});
+
 test('document title feeds metadata and export filename', async ({ page }) => {
   await page.getByTestId('settings-toggle').click();
   await page.getByTestId('doc-title').fill('My Report');

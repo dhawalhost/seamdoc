@@ -3,8 +3,9 @@
 import { useRef, useState } from 'react';
 import { Download, FilePlus, FolderOpen, Moon, Palette, Settings, Share, Sun } from 'lucide-react';
 import { builtinThemes, getBuiltinTheme, validateTheme } from '@seamdoc/themes';
+import type { ExportFormat } from '@seamdoc/types';
 import { resolveActiveTheme, useAppStore } from '../store';
-import { downloadDocx, downloadThemeJson } from '../lib/export';
+import { downloadDocument, downloadThemeJson } from '../lib/export';
 
 export function Toolbar() {
   const {
@@ -24,7 +25,7 @@ export function Toolbar() {
   } = useAppStore();
   const fileInput = useRef<HTMLInputElement>(null);
   const themeInput = useRef<HTMLInputElement>(null);
-  const [exporting, setExporting] = useState(false);
+  const [exporting, setExporting] = useState<ExportFormat | null>(null);
   const [themeError, setThemeError] = useState('');
 
   const openFile = async (file: File | undefined) => {
@@ -34,12 +35,18 @@ export function Toolbar() {
     setMarkdown(await file.text());
   };
 
-  const handleExport = async () => {
-    setExporting(true);
+  const handleExport = async (format: ExportFormat) => {
+    setExporting(format);
     try {
-      await downloadDocx(markdown, resolveActiveTheme(themeId, customThemes), settings, metadata);
+      await downloadDocument(
+        format,
+        markdown,
+        resolveActiveTheme(themeId, customThemes),
+        settings,
+        metadata,
+      );
     } finally {
-      setExporting(false);
+      setExporting(null);
     }
   };
 
@@ -204,13 +211,24 @@ export function Toolbar() {
 
       <button
         type="button"
-        onClick={() => void handleExport()}
-        disabled={exporting}
+        onClick={() => void handleExport('pdf')}
+        disabled={exporting !== null}
+        data-testid="export-pdf-button"
+        className="flex items-center gap-2 rounded border border-blue-600 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:hover:bg-neutral-800"
+      >
+        <Download size={16} />
+        {exporting === 'pdf' ? 'Exporting…' : 'Export PDF'}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => void handleExport('docx')}
+        disabled={exporting !== null}
         data-testid="export-button"
         className="flex items-center gap-2 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
       >
         <Download size={16} />
-        {exporting ? 'Exporting…' : 'Export DOCX'}
+        {exporting === 'docx' ? 'Exporting…' : 'Export DOCX'}
       </button>
     </header>
   );

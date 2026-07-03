@@ -2,11 +2,13 @@
 
 import { ExporterRegistry, exportMarkdown } from '@seamdoc/core';
 import { docxExporter } from '@seamdoc/exporter-docx';
-import type { DocumentMetadata, DocumentSettings } from '@seamdoc/types';
+import { pdfExporter } from '@seamdoc/exporter-pdf';
+import type { DocumentMetadata, DocumentSettings, ExportFormat } from '@seamdoc/types';
 import type { Theme } from '@seamdoc/themes';
 
 const registry = new ExporterRegistry();
 registry.register(docxExporter);
+registry.register(pdfExporter);
 
 function triggerDownload(data: BlobPart, mimeType: string, filename: string): void {
   const blob = new Blob([data], { type: mimeType });
@@ -18,14 +20,15 @@ function triggerDownload(data: BlobPart, mimeType: string, filename: string): vo
   URL.revokeObjectURL(url);
 }
 
-export async function downloadDocx(
+export async function downloadDocument(
+  format: ExportFormat,
   markdown: string,
   theme: Theme | string,
   settings: DocumentSettings,
   metadata: DocumentMetadata,
 ): Promise<void> {
   const result = await exportMarkdown(markdown, registry, {
-    format: 'docx',
+    format,
     theme,
     settings,
     metadata,
