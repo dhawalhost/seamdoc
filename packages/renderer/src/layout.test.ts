@@ -4,7 +4,7 @@ import { fromMdast } from '@seamdoc/semantic-model';
 import { DEFAULT_DOCUMENT_SETTINGS, PAGE_SIZES, RENDER_TREE_VERSION } from '@seamdoc/shared';
 import { minimalTheme } from '@seamdoc/themes';
 import { layoutDocument } from './layout.js';
-import type { RenderHeading, RenderList, RenderParagraph, RenderTable } from './render-tree.js';
+import type { RenderCodeBlock, RenderHeading, RenderList, RenderParagraph, RenderTable } from './render-tree.js';
 
 function layout(markdown: string, settings = DEFAULT_DOCUMENT_SETTINGS) {
   const document = fromMdast(parseMarkdown(markdown));
@@ -99,6 +99,14 @@ describe('layoutDocument', () => {
     expect(paragraph.runs[0]?.style.fontSize).toBe(14);
     expect(paragraph.lineHeight).toBe(2);
     expect(paragraph.spacing.after).toBe(20);
+  });
+
+  it('applies Shiki token colors to fenced code blocks', () => {
+    const tree = layout('```typescript\nconst answer = 42;\n```');
+    const code = tree.pages[0]?.children[0] as RenderCodeBlock;
+    expect(code.type).toBe('codeBlock');
+    const colors = new Set(code.lines.flat().map((run) => run.style.color));
+    expect(colors.size).toBeGreaterThan(1);
   });
 
   it('is deterministic for identical input', () => {

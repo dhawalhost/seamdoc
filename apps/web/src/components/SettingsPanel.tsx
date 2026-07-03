@@ -86,6 +86,53 @@ export function SettingsPanel() {
       </div>
 
       <div>
+        <label className={labelClass} htmlFor="doc-description">
+          Description
+        </label>
+        <textarea
+          id="doc-description"
+          data-testid="doc-description"
+          className={fieldClass}
+          rows={2}
+          value={metadata.description}
+          onChange={(event) => updateMetadata({ description: event.target.value })}
+        />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="doc-keywords">
+          Keywords (comma-separated)
+        </label>
+        <input
+          id="doc-keywords"
+          data-testid="doc-keywords"
+          className={fieldClass}
+          value={metadata.keywords.join(', ')}
+          onChange={(event) =>
+            updateMetadata({
+              keywords: event.target.value
+                .split(',')
+                .map((keyword) => keyword.trim())
+                .filter((keyword) => keyword !== ''),
+            })
+          }
+        />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="doc-language">
+          Language
+        </label>
+        <input
+          id="doc-language"
+          data-testid="doc-language"
+          className={fieldClass}
+          value={metadata.language}
+          onChange={(event) => updateMetadata({ language: event.target.value })}
+        />
+      </div>
+
+      <div>
         <label className={labelClass} htmlFor="page-size">
           Page size
         </label>

@@ -7,10 +7,11 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { DocumentMetadata, DocumentSettings } from '@seamdoc/types';
+import type { DocumentMetadata, DocumentSettings, ExportFormat } from '@seamdoc/types';
 import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 import { getBuiltinTheme, type Theme } from '@seamdoc/themes';
 import type { StyleMapping, TemplateProfile } from '@seamdoc/templates';
+import type { PreviewZoom } from './lib/previewZoom';
 
 export const SAMPLE_MARKDOWN = `# Welcome to Seamdoc
 
@@ -48,7 +49,16 @@ interface AppState {
   /** Settings values overridden by the template, for restore on removal. */
   settingsBeforeTemplate: Partial<DocumentSettings> | null;
   darkMode: boolean;
+  highContrast: boolean;
   settingsOpen: boolean;
+  appSettingsOpen: boolean;
+  previewZoom: PreviewZoom;
+  printPreview: boolean;
+  editorFullscreen: boolean;
+  previewRefreshNonce: number;
+  defaultThemeId: string;
+  defaultExportFormat: ExportFormat;
+  dragDropError: string;
   setMarkdown: (markdown: string) => void;
   setThemeId: (themeId: string) => void;
   addCustomTheme: (theme: Theme) => void;
@@ -57,7 +67,16 @@ interface AppState {
   updateSettings: (settings: Partial<DocumentSettings>) => void;
   updateMetadata: (metadata: Partial<DocumentMetadata>) => void;
   toggleDarkMode: () => void;
+  toggleHighContrast: () => void;
   setSettingsOpen: (open: boolean) => void;
+  setAppSettingsOpen: (open: boolean) => void;
+  setPreviewZoom: (zoom: PreviewZoom) => void;
+  togglePrintPreview: () => void;
+  toggleEditorFullscreen: () => void;
+  refreshPreview: () => void;
+  setDefaultThemeId: (themeId: string) => void;
+  setDefaultExportFormat: (format: ExportFormat) => void;
+  setDragDropError: (message: string) => void;
   newDocument: () => void;
 }
 
@@ -81,7 +100,16 @@ export const useAppStore = create<AppState>()(
       template: null,
       settingsBeforeTemplate: null,
       darkMode: false,
+      highContrast: false,
       settingsOpen: false,
+      appSettingsOpen: false,
+      previewZoom: 1,
+      printPreview: false,
+      editorFullscreen: false,
+      previewRefreshNonce: 0,
+      defaultThemeId: 'minimal',
+      defaultExportFormat: 'docx',
+      dragDropError: '',
       setMarkdown: (markdown) => set({ markdown }),
       setThemeId: (themeId) => set({ themeId }),
       addCustomTheme: (theme) =>
@@ -126,8 +154,31 @@ export const useAppStore = create<AppState>()(
       updateMetadata: (partial) =>
         set((state) => ({ metadata: { ...state.metadata, ...partial } })),
       toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
+      toggleHighContrast: () => set((state) => ({ highContrast: !state.highContrast })),
       setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
-      newDocument: () => set({ markdown: '' }),
+      setAppSettingsOpen: (appSettingsOpen) => set({ appSettingsOpen }),
+      setPreviewZoom: (previewZoom) => set({ previewZoom }),
+      togglePrintPreview: () =>
+        set((state) => ({
+          printPreview: !state.printPreview,
+          editorFullscreen: state.printPreview ? state.editorFullscreen : false,
+        })),
+      toggleEditorFullscreen: () =>
+        set((state) => ({
+          editorFullscreen: !state.editorFullscreen,
+          printPreview: state.editorFullscreen ? state.printPreview : false,
+        })),
+      refreshPreview: () =>
+        set((state) => ({ previewRefreshNonce: state.previewRefreshNonce + 1 })),
+      setDefaultThemeId: (defaultThemeId) => set({ defaultThemeId }),
+      setDefaultExportFormat: (defaultExportFormat) => set({ defaultExportFormat }),
+      setDragDropError: (dragDropError) => set({ dragDropError }),
+      newDocument: () =>
+        set((state) => ({
+          markdown: '',
+          themeId: state.defaultThemeId,
+          metadata: DEFAULT_DOCUMENT_METADATA,
+        })),
     }),
     {
       name: 'seamdoc',
@@ -140,6 +191,10 @@ export const useAppStore = create<AppState>()(
         template: state.template,
         settingsBeforeTemplate: state.settingsBeforeTemplate,
         darkMode: state.darkMode,
+        highContrast: state.highContrast,
+        previewZoom: state.previewZoom,
+        defaultThemeId: state.defaultThemeId,
+        defaultExportFormat: state.defaultExportFormat,
       }),
     },
   ),

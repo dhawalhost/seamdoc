@@ -31,6 +31,8 @@ const answer = 42;
 
 ---
 
+![Golden diagram](https://example.com/diagram.png)
+
 Final paragraph.
 `;
 
@@ -96,9 +98,12 @@ describe('DocxExporter', () => {
     const xml = await extractDocumentXml(result.data);
     expect(xml).toContain('Seamdoc Golden Document');
     expect(xml).toContain('<w:tbl>');
-    expect(xml).toContain('const answer = 42;');
+    expect(xml).toContain('const');
+    expect(xml).toContain('answer');
+    expect(xml).toContain('42');
     expect(xml).toContain('<w:hyperlink');
     expect(xml).toContain('Final paragraph.');
+    expect(xml).toContain('Golden diagram');
     // Hyperlink targets live in the relationships part of the package.
     const rels = await extractRels(result.data);
     expect(rels).toContain('https://example.com');

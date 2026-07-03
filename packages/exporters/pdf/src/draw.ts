@@ -250,16 +250,22 @@ export class PageRenderer {
       height,
       color: toColor(block.background),
     });
-    const font = await this.fonts.fontFor(block.style);
     let cursorY = topY + block.padding;
-    for (const line of block.lines) {
-      this.page.drawText(sanitizeText(line), {
-        x: x + block.padding,
-        y: this.pdfY(cursorY + block.style.fontSize),
-        size: block.style.fontSize,
-        font,
-        color: toColor(block.style.color),
-      });
+    for (const lineRuns of block.lines) {
+      let cursorX = x + block.padding;
+      const baseline = this.pdfY(cursorY + block.style.fontSize);
+      for (const run of lineRuns) {
+        const font = await this.fonts.fontFor(run.style);
+        const text = sanitizeText(run.text);
+        this.page.drawText(text, {
+          x: cursorX,
+          y: baseline,
+          size: run.style.fontSize,
+          font,
+          color: toColor(run.style.color),
+        });
+        cursorX += font.widthOfTextAtSize(text, run.style.fontSize);
+      }
       cursorY += lineAdvance;
     }
     return height;

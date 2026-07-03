@@ -64,7 +64,8 @@ export interface RenderParagraph extends BaseRenderNode {
 export interface RenderCodeBlock extends BaseRenderNode {
   readonly type: 'codeBlock';
   readonly language: string;
-  readonly lines: readonly string[];
+  /** One highlighted line per source line; syntax colors are resolved. */
+  readonly lines: readonly (readonly TextRun[])[];
   readonly style: RunStyle;
   readonly background: string;
   readonly padding: number;

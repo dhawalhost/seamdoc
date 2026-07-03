@@ -1,7 +1,7 @@
 {
-  "name": "@seamdoc/renderer",
+  "name": "@seamdoc/highlighter",
   "version": "0.1.0",
-  "description": "Document engine, render tree, and layout engine",
+  "description": "Shiki-based syntax highlighting for code blocks",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -22,15 +22,6 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@seamdoc/highlighter": "workspace:*",
-    "@seamdoc/types": "workspace:*",
-    "@seamdoc/shared": "workspace:*",
-    "@seamdoc/utils": "workspace:*",
-    "@seamdoc/semantic-model": "workspace:*",
-    "@seamdoc/themes": "workspace:*"
-  },
-  "devDependencies": {
-    "@seamdoc/highlighter": "workspace:*",
-    "@seamdoc/parser": "workspace:*"
+    "shiki": "^3.7.0"
   }
 }

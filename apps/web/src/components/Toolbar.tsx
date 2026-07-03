@@ -10,6 +10,7 @@ import {
   Palette,
   Settings,
   Share,
+  SlidersHorizontal,
   Sun,
   X,
 } from 'lucide-react';
@@ -18,6 +19,7 @@ import { importTemplate as importDocxTemplate, TemplateImportError } from '@seam
 import type { ExportFormat } from '@seamdoc/types';
 import { resolveActiveTheme, useAppStore } from '../store';
 import { downloadDocument, downloadThemeJson } from '../lib/export';
+import { computeDocumentStats, formatDocumentStats } from '../lib/documentStats';
 
 export function Toolbar() {
   const {
@@ -28,12 +30,15 @@ export function Toolbar() {
     customThemes,
     template,
     darkMode,
+    defaultExportFormat,
     setThemeId,
     addCustomTheme,
     setTemplate,
     toggleDarkMode,
     setSettingsOpen,
+    setAppSettingsOpen,
     settingsOpen,
+    appSettingsOpen,
     newDocument,
     setMarkdown,
   } = useAppStore();
@@ -114,10 +119,26 @@ export function Toolbar() {
     }
   };
 
-  const words = markdown.trim() === '' ? 0 : markdown.trim().split(/\s+/).length;
+  const stats = formatDocumentStats(computeDocumentStats(markdown));
+  const activeTheme = resolveActiveTheme(themeId, customThemes);
+  const themeMetadata =
+    typeof activeTheme === 'string'
+      ? getBuiltinTheme(themeId)?.metadata
+      : activeTheme.metadata;
+
+  const exportButtonClass = (format: ExportFormat) => {
+    const isDefault = format === defaultExportFormat;
+    return isDefault
+      ? 'flex items-center gap-2 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50'
+      : 'flex items-center gap-2 rounded border border-blue-600 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:hover:bg-neutral-800';
+  };
 
   return (
-    <header className="flex items-center gap-2 border-b border-neutral-200 bg-white px-4 py-2 dark:border-neutral-700 dark:bg-neutral-900">
+    <header
+      className="flex items-center gap-2 border-b border-neutral-200 bg-white px-4 py-2 dark:border-neutral-700 dark:bg-neutral-900"
+      data-no-print
+      role="banner"
+    >
       <span className="mr-2 text-lg font-semibold text-neutral-900 dark:text-white">Seamdoc</span>
 
       <button
@@ -177,6 +198,15 @@ export function Toolbar() {
             </option>
           ))}
         </select>
+        {themeMetadata !== undefined && (
+          <span
+            data-testid="theme-metadata"
+            className="hidden text-xs text-neutral-400 lg:inline"
+            title={themeMetadata.description}
+          >
+            v{themeMetadata.version}
+          </span>
+        )}
       </label>
 
       <button
@@ -274,6 +304,17 @@ export function Toolbar() {
         <Settings size={18} />
       </button>
 
+      <button
+        type="button"
+        onClick={() => setAppSettingsOpen(!appSettingsOpen)}
+        title="App preferences"
+        aria-label="App preferences"
+        data-testid="app-settings-toggle"
+        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+      >
+        <SlidersHorizontal size={18} />
+      </button>
+
       <div className="flex-1" />
 
       {exportError !== '' && (
@@ -286,7 +327,7 @@ export function Toolbar() {
         className="mr-2 text-xs text-neutral-500 dark:text-neutral-400"
         data-testid="word-count"
       >
-        {words} {words === 1 ? 'word' : 'words'}
+        {stats}
       </span>
 
       <button
@@ -305,7 +346,7 @@ export function Toolbar() {
         onClick={() => void handleExport('pdf')}
         disabled={exporting !== null}
         data-testid="export-pdf-button"
-        className="flex items-center gap-2 rounded border border-blue-600 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:hover:bg-neutral-800"
+        className={exportButtonClass('pdf')}
       >
         <Download size={16} />
         {exporting === 'pdf' ? 'Exporting…' : 'Export PDF'}
@@ -316,7 +357,7 @@ export function Toolbar() {
         onClick={() => void handleExport('docx')}
         disabled={exporting !== null}
         data-testid="export-button"
-        className="flex items-center gap-2 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        className={exportButtonClass('docx')}
       >
         <Download size={16} />
         {exporting === 'docx' ? 'Exporting…' : 'Export DOCX'}

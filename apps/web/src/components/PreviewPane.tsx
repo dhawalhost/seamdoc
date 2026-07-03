@@ -6,20 +6,33 @@
 import {
   forwardRef,
   useEffect,
+  useImperativeHandle,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
 } from 'react';
 import { renderMarkdown } from '@seamdoc/core';
-import type { RenderBlock, RenderDocument, RenderListItem, TextRun } from '@seamdoc/renderer';
+import type {
+  RenderBlock,
+  RenderDocument,
+  RenderImage,
+  RenderListItem,
+  TextRun,
+} from '@seamdoc/renderer';
 import type { DocumentSettings } from '@seamdoc/types';
 import type { Theme } from '@seamdoc/themes';
+import { imagePlaceholderLabel, isEmbeddableImageSrc } from '../lib/imagePolicy';
 
 interface PreviewPaneProps {
   markdown: string;
   theme: Theme | string;
   settings: DocumentSettings;
+  zoom: number;
+  printPreview: boolean;
+  refreshNonce: number;
+  onScrollRatio?: (ratio: number) => void;
 }
 
 function runStyle(run: TextRun): CSSProperties {
@@ -66,6 +79,52 @@ function ListItems({ items, ordered }: { items: readonly RenderListItem[]; order
   );
 }
 
+function ImageBlock({
+  block,
+  spacing,
+}: {
+  block: RenderImage;
+  spacing: CSSProperties;
+}): ReactNode {
+  if (isEmbeddableImageSrc(block.src)) {
+    return (
+      <div style={{ ...spacing, textAlign: block.alignment }} data-preview="image">
+        <img
+          src={block.src}
+          alt={block.alt}
+          style={{ maxWidth: '100%', display: 'inline-block' }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ ...spacing, textAlign: block.alignment }} data-preview="image">
+      <div
+        data-preview="image-placeholder"
+        role="img"
+        aria-label={block.alt === '' ? 'Image' : block.alt}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: `${block.bounds.width}pt`,
+          maxWidth: '100%',
+          minHeight: `${block.bounds.height}pt`,
+          border: '1pt solid #999',
+          color: '#666',
+          fontStyle: 'italic',
+          fontSize: '10pt',
+          boxSizing: 'border-box',
+          padding: '8pt',
+        }}
+      >
+        {imagePlaceholderLabel(block.alt)}
+      </div>
+    </div>
+  );
+}
+
 function Block({ block }: { block: RenderBlock }): ReactNode {
   const spacing =
     block.type === 'table'
@@ -102,7 +161,12 @@ function Block({ block }: { block: RenderBlock }): ReactNode {
             overflowX: 'auto',
           }}
         >
-          {block.lines.join('\n')}
+          {block.lines.map((lineRuns, lineIndex) => (
+            <span key={lineIndex}>
+              {lineIndex > 0 ? '\n' : null}
+              <Runs runs={lineRuns} />
+            </span>
+          ))}
         </pre>
       );
     case 'quote':
@@ -158,15 +222,7 @@ function Block({ block }: { block: RenderBlock }): ReactNode {
         </table>
       );
     case 'image':
-      return (
-        <div style={{ ...spacing, textAlign: block.alignment }} data-preview="image">
-          <img
-            src={block.src}
-            alt={block.alt}
-            style={{ maxWidth: '100%', display: 'inline-block' }}
-          />
-        </div>
-      );
+      return <ImageBlock block={block} spacing={spacing} />;
     case 'rule':
       return (
         <hr
@@ -185,16 +241,46 @@ function Block({ block }: { block: RenderBlock }): ReactNode {
   }
 }
 
-export const PreviewPane = forwardRef<HTMLDivElement, PreviewPaneProps>(function PreviewPane(
-  { markdown, theme, settings }: PreviewPaneProps,
-  scrollRef,
+export interface PreviewPaneHandle {
+  scrollToRatio: (ratio: number) => void;
+}
+
+export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(function PreviewPane(
+  { markdown, theme, settings, zoom, printPreview, refreshNonce, onScrollRatio }: PreviewPaneProps,
+  ref,
 ) {
   const [debounced, setDebounced] = useState(markdown);
+  const suppressScrollEvent = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    scrollToRatio(ratio: number) {
+      const element = containerRef.current;
+      if (element === null) {
+        return;
+      }
+      const range = element.scrollHeight - element.clientHeight;
+      if (range <= 0) {
+        return;
+      }
+      suppressScrollEvent.current = true;
+      element.scrollTop = ratio * range;
+      requestAnimationFrame(() => {
+        suppressScrollEvent.current = false;
+      });
+    },
+  }));
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebounced(markdown), 150);
     return () => window.clearTimeout(timer);
   }, [markdown]);
+
+  useEffect(() => {
+    if (refreshNonce > 0) {
+      setDebounced(markdown);
+    }
+  }, [refreshNonce, markdown]);
 
   const rendered = useMemo<RenderDocument | null>(() => {
     try {
@@ -202,7 +288,7 @@ export const PreviewPane = forwardRef<HTMLDivElement, PreviewPaneProps>(function
     } catch {
       return null;
     }
-  }, [debounced, theme, settings]);
+  }, [debounced, theme, settings, refreshNonce]);
 
   if (rendered === null) {
     return (
@@ -214,11 +300,35 @@ export const PreviewPane = forwardRef<HTMLDivElement, PreviewPaneProps>(function
 
   return (
     <div
-      ref={scrollRef}
-      className="h-full overflow-y-auto bg-neutral-200 p-6 dark:bg-neutral-800"
+      ref={containerRef}
+      className={`h-full overflow-y-auto p-6 ${
+        printPreview ? 'bg-white dark:bg-neutral-950' : 'bg-neutral-200 dark:bg-neutral-800'
+      }`}
       data-testid="preview"
+      data-print-area
+      role="region"
+      aria-label="Document preview"
+      data-print-preview={printPreview ? 'true' : 'false'}
+      onScroll={(event) => {
+        if (suppressScrollEvent.current || onScrollRatio === undefined) {
+          return;
+        }
+        const element = event.currentTarget;
+        const range = element.scrollHeight - element.clientHeight;
+        if (range > 0) {
+          onScrollRatio(Math.min(1, Math.max(0, element.scrollTop / range)));
+        }
+      }}
     >
-      <div className="mx-auto flex flex-col items-center gap-6">
+      <div
+        className="mx-auto flex flex-col items-center gap-6"
+        data-testid="preview-scaler"
+        style={{
+          transform: `scale(${zoom})`,
+          transformOrigin: 'top center',
+          width: `${100 / zoom}%`,
+        }}
+      >
         {rendered.pages.map((page, index) => (
           <div
             key={page.id}

@@ -21,6 +21,8 @@ import { layoutDocument, validateRenderTree, type RenderDocument } from '@seamdo
 import { getBuiltinTheme, minimalTheme, validateTheme, type Theme } from '@seamdoc/themes';
 import type { PluginRegistry } from '@seamdoc/plugins';
 
+export { initHighlighter, isHighlighterReady } from '@seamdoc/highlighter';
+
 export interface RenderOptions {
   readonly theme?: Theme | string;
   readonly settings?: Partial<DocumentSettings>;

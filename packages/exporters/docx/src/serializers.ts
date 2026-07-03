@@ -29,7 +29,6 @@ import type {
   RenderQuote,
   RenderRule,
   RenderTable,
-  RunStyle,
   TextRun,
 } from '@seamdoc/renderer';
 
@@ -128,21 +127,27 @@ export function serializeCodeBlock(
   if (mapping.code !== undefined) {
     const codeStyle = mapping.code;
     return node.lines.map(
-      (line) => new Paragraph({ style: codeStyle, children: [new DocxTextRun({ text: line })] }),
+      (runs) =>
+        new Paragraph({
+          style: codeStyle,
+          children: [new DocxTextRun({ text: runs.map((run) => run.text).join('') })],
+        }),
     );
   }
-  const style: RunStyle = node.style;
   return node.lines.map(
-    (line, index) =>
+    (runs, index) =>
       new Paragraph({
-        children: [
-          new DocxTextRun({
-            text: line,
-            font: style.fontFamily,
-            size: pointsToHalfPoints(style.fontSize),
-            color: toColor(style.color),
-          }),
-        ],
+        children: runs.map(
+          (run) =>
+            new DocxTextRun({
+              text: run.text,
+              font: run.style.fontFamily,
+              size: pointsToHalfPoints(run.style.fontSize),
+              color: toColor(run.style.color),
+              italics: run.style.italic,
+              bold: run.style.fontWeight >= 700,
+            }),
+        ),
         shading: { type: ShadingType.SOLID, color: toColor(node.background) },
         spacing: {
           before: index === 0 ? pointsToTwips(node.spacing.before) : 0,

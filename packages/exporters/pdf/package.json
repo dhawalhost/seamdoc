@@ -18,7 +18,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run --passWithNoTests --config vitest.config.ts",
     "lint": "eslint src"
   },
   "dependencies": {
@@ -28,6 +28,7 @@
     "pdf-lib": "^1.17.1"
   },
   "devDependencies": {
+    "@seamdoc/highlighter": "workspace:*",
     "@seamdoc/core": "workspace:*"
   }
 }

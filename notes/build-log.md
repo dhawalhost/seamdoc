@@ -3,6 +3,20 @@
 One lesson per entry, newest first. Records corrections and confirmed approaches
 that git history alone doesn't explain.
 
+## Shiki highlights code blocks at layout time
+
+Fenced code blocks resolve to per-token `TextRun` colors via `@seamdoc/highlighter`
+(ADR 0007). Call `initHighlighter()` before the first render in the browser and
+in Vitest setup; preview and exporters share the same highlighted lines.
+
+## Live preview: zoom, print preview, bidirectional scroll sync
+
+Preview toolbar controls zoom (50–200%), toggles print-preview layout (editor hidden),
+and exposes `window.print()` with `@media print` styles that isolate `[data-print-area]`.
+Editor ↔ preview scroll sync uses imperative handles and a source guard to avoid loops.
+
+## Preview: remote images are placeholders, not `<img src>`
+
 ## Plugin isolation: clone SDM before each transform
 
 Plugins receive a deep clone of the working document so in-place mutation

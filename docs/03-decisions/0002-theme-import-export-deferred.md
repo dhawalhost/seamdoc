@@ -1,7 +1,8 @@
 ---
 title: "ADR 0002: Theme import/export deferred to v0.2"
-status: Accepted
+status: Superseded
 date: 2026-07-03
+superseded-by: "v0.2 shipped theme import/export in apps/web"
 ---
 
 # Context
@@ -27,3 +28,9 @@ import support in v0.2 is a UI and file-handling task, not an engine change.
 - The v0.1 web app has no theme import/export UI.
 - v0.2 must add: theme JSON file import with validation errors surfaced to the
   user, and export of the active theme as a JSON package.
+
+# Superseded
+
+v0.2 implemented theme import and export in the web app (`ThemePanel` /
+settings UI). This ADR remains as historical context for the feature-list
+conflict resolution; new work should treat theme import/export as shipped.

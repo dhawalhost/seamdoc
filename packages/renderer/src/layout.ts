@@ -19,6 +19,7 @@ import type {
   SdmTableRow,
 } from '@seamdoc/semantic-model';
 import type { Theme } from '@seamdoc/themes';
+import { highlightCodeToLines } from '@seamdoc/highlighter';
 import { estimateParagraphHeight } from './measure.js';
 import type {
   Bounds,
@@ -242,23 +243,35 @@ function buildBlock(
       ];
     }
     case 'code': {
-      const lines = block.value === '' ? [] : block.value.split('\n');
+      const baseStyle = {
+        fontFamily: theme.code.fontFamily,
+        fontSize: theme.code.fontSize,
+        fontWeight: 400,
+        italic: false,
+        color: theme.code.color,
+        underline: false,
+        code: true,
+        link: '',
+      };
+      const highlighted = highlightCodeToLines(block.value, block.language ?? '', theme.code.color);
+      const lines = highlighted.map((tokens) =>
+        tokens.map((token) => ({
+          text: token.text,
+          style: {
+            ...baseStyle,
+            color: token.color,
+            italic: token.italic,
+            fontWeight: token.bold ? 700 : baseStyle.fontWeight,
+          },
+        })),
+      );
       return [
         {
           type: 'codeBlock',
           id: ids.next('code'),
           language: block.language ?? '',
           lines,
-          style: {
-            fontFamily: theme.code.fontFamily,
-            fontSize: theme.code.fontSize,
-            fontWeight: 400,
-            italic: false,
-            color: theme.code.color,
-            underline: false,
-            code: true,
-            link: '',
-          },
+          style: baseStyle,
           background: theme.code.background,
           padding: theme.code.padding,
           spacing: theme.code.spacing,
