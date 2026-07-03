@@ -61,9 +61,35 @@ export interface DocumentMetadata {
 
 export type ExportFormat = 'docx' | 'pdf' | 'html' | 'odt' | 'epub';
 
+/** Semantic slots a template can map to native document styles. */
+export type TemplateMappableNode =
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'paragraph'
+  | 'quote'
+  | 'code'
+  | 'table';
+
+/**
+ * Format-neutral template data exporters may honor
+ * (docs/02-architecture/template-engine.md). Produced by the template
+ * engine; exporters that have no use for it ignore it.
+ */
+export interface ExportTemplate {
+  /** Raw styles.xml from the imported template. */
+  readonly stylesXml: string;
+  /** Semantic-node → native-style-id mapping. */
+  readonly mapping: Partial<Readonly<Record<TemplateMappableNode, string>>>;
+}
+
 export interface ExportSettings {
   readonly filename: string;
   readonly metadata: DocumentMetadata;
+  readonly template?: ExportTemplate;
 }
 
 export interface ExportResult {

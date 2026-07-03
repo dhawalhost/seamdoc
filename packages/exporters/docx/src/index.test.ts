@@ -126,6 +126,34 @@ describe('DocxExporter', () => {
     expect(github).toContain('Seamdoc Golden Document');
   });
 
+  it('applies a template: embedded styles.xml and mapped paragraph styles', async () => {
+    const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:style w:type="paragraph" w:styleId="AcmeHeading1"><w:name w:val="Acme Heading 1"/></w:style>
+  <w:style w:type="paragraph" w:styleId="AcmeBody"><w:name w:val="Acme Body"/></w:style>
+</w:styles>`;
+    const outcome = renderMarkdown(FIXTURE_MARKDOWN, { theme: 'minimal' });
+    const result = await docxExporter.export(outcome.renderDocument, {
+      filename: 'templated',
+      metadata: DEFAULT_DOCUMENT_METADATA,
+      template: {
+        stylesXml,
+        mapping: { h1: 'AcmeHeading1', paragraph: 'AcmeBody' },
+      },
+    });
+
+    const zip = await JSZip.loadAsync(result.data);
+    const embeddedStyles = await zip.file('word/styles.xml')!.async('string');
+    expect(embeddedStyles).toContain('AcmeHeading1');
+
+    const xml = await extractDocumentXml(result.data);
+    expect(xml).toContain('<w:pStyle w:val="AcmeHeading1"/>');
+    expect(xml).toContain('<w:pStyle w:val="AcmeBody"/>');
+    // Template-styled paragraphs must not carry direct font formatting.
+    const headingChunk = xml.slice(xml.indexOf('AcmeHeading1'), xml.indexOf('Golden Document'));
+    expect(headingChunk).not.toContain('<w:rFonts');
+  });
+
   it('rejects render trees with a wrong version', async () => {
     const outcome = renderMarkdown('x');
     const broken = { ...outcome.renderDocument, version: 99 };

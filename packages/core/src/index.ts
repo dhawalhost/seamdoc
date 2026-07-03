@@ -11,6 +11,7 @@ import type {
   Exporter,
   ExportFormat,
   ExportResult,
+  ExportTemplate,
 } from '@seamdoc/types';
 import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 import { parseMarkdown } from '@seamdoc/parser';
@@ -100,6 +101,8 @@ export class ExporterRegistry {
 export interface ExportMarkdownOptions extends RenderOptions {
   readonly format: ExportFormat;
   readonly filename?: string;
+  /** Template profile applied by exporters that support native styles. */
+  readonly template?: ExportTemplate;
 }
 
 /** End-to-end convenience: Markdown text to an exported document. */
@@ -116,5 +119,6 @@ export async function exportMarkdown(
   return exporter.export(outcome.renderDocument, {
     filename: options.filename ?? 'document',
     metadata: { ...DEFAULT_DOCUMENT_METADATA, ...options.metadata },
+    ...(options.template === undefined ? {} : { template: options.template }),
   });
 }

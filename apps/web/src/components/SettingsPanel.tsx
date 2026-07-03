@@ -1,7 +1,7 @@
 /** Document settings: page size, orientation, margins, header/footer, page numbers. */
 
 import { X } from 'lucide-react';
-import type { PageOrientation, PageSizeName } from '@seamdoc/types';
+import type { PageOrientation, PageSizeName, TemplateMappableNode } from '@seamdoc/types';
 import { PAGE_SIZES } from '@seamdoc/shared';
 import { useAppStore } from '../store';
 
@@ -9,8 +9,26 @@ const fieldClass =
   'w-full rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-white';
 const labelClass = 'block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1';
 
+const MAPPABLE_NODES: readonly { node: TemplateMappableNode; label: string }[] = [
+  { node: 'h1', label: 'Heading 1' },
+  { node: 'h2', label: 'Heading 2' },
+  { node: 'h3', label: 'Heading 3' },
+  { node: 'paragraph', label: 'Paragraph' },
+  { node: 'quote', label: 'Quote' },
+  { node: 'code', label: 'Code block' },
+  { node: 'table', label: 'Table' },
+];
+
 export function SettingsPanel() {
-  const { settings, metadata, updateSettings, updateMetadata, setSettingsOpen } = useAppStore();
+  const {
+    settings,
+    metadata,
+    template,
+    updateSettings,
+    updateMetadata,
+    updateTemplateMapping,
+    setSettingsOpen,
+  } = useAppStore();
 
   const updateMargin = (side: 'top' | 'right' | 'bottom' | 'left', value: string) => {
     const parsed = Number(value);
@@ -232,6 +250,38 @@ export function SettingsPanel() {
         />
         Page numbers
       </label>
+
+      {template !== null && (
+        <fieldset data-testid="template-mapping">
+          <legend className={labelClass}>Template style mapping — {template.metadata.name}</legend>
+          <div className="flex flex-col gap-2">
+            {MAPPABLE_NODES.map(({ node, label }) => (
+              <label key={node} className="text-xs text-neutral-500 dark:text-neutral-400">
+                {label}
+                <select
+                  className={fieldClass}
+                  data-testid={`mapping-${node}`}
+                  value={template.mapping[node] ?? ''}
+                  onChange={(event) =>
+                    updateTemplateMapping({
+                      [node]: event.target.value === '' ? undefined : event.target.value,
+                    })
+                  }
+                >
+                  <option value="">Theme default</option>
+                  {template.styles
+                    .filter((style) => style.type === (node === 'table' ? 'table' : 'paragraph'))
+                    .map((style) => (
+                      <option key={style.id} value={style.id}>
+                        {style.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
     </aside>
   );
 }

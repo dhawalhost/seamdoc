@@ -4,7 +4,7 @@
  * template: extracted styles, semantic mappings, and preserved page setup.
  */
 
-import type { DocumentSettings } from '@seamdoc/types';
+import type { DocumentSettings, ExportTemplate, TemplateMappableNode } from '@seamdoc/types';
 
 export type WordStyleType = 'paragraph' | 'character' | 'table' | 'numbering';
 
@@ -15,17 +15,7 @@ export interface WordStyle {
 }
 
 /** Semantic slots that can be mapped to Word styles. */
-export type MappableNode =
-  | 'h1'
-  | 'h2'
-  | 'h3'
-  | 'h4'
-  | 'h5'
-  | 'h6'
-  | 'paragraph'
-  | 'quote'
-  | 'code'
-  | 'table';
+export type MappableNode = TemplateMappableNode;
 
 export type StyleMapping = Partial<Readonly<Record<MappableNode, string>>>;
 
@@ -38,7 +28,8 @@ export interface TemplateMetadata {
   readonly createdAt: string;
 }
 
-export interface TemplateProfile {
+/** Satisfies the ExportTemplate contract so exporters can consume profiles. */
+export interface TemplateProfile extends ExportTemplate {
   readonly version: 1;
   readonly metadata: TemplateMetadata;
   /** All styles discovered in the template. */

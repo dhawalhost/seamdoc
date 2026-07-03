@@ -3,7 +3,12 @@
 import { ExporterRegistry, exportMarkdown } from '@seamdoc/core';
 import { docxExporter } from '@seamdoc/exporter-docx';
 import { pdfExporter } from '@seamdoc/exporter-pdf';
-import type { DocumentMetadata, DocumentSettings, ExportFormat } from '@seamdoc/types';
+import type {
+  DocumentMetadata,
+  DocumentSettings,
+  ExportFormat,
+  ExportTemplate,
+} from '@seamdoc/types';
 import type { Theme } from '@seamdoc/themes';
 
 const registry = new ExporterRegistry();
@@ -26,6 +31,7 @@ export async function downloadDocument(
   theme: Theme | string,
   settings: DocumentSettings,
   metadata: DocumentMetadata,
+  template: ExportTemplate | null = null,
 ): Promise<void> {
   const result = await exportMarkdown(markdown, registry, {
     format,
@@ -33,6 +39,7 @@ export async function downloadDocument(
     settings,
     metadata,
     filename: metadata.title === '' ? 'document' : metadata.title,
+    ...(template === null ? {} : { template }),
   });
   triggerDownload(result.data, result.mimeType, result.filename);
 }

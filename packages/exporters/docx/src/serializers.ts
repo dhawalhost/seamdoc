@@ -17,6 +17,7 @@ import {
   WidthType,
 } from 'docx';
 import { pointsToHalfPoints, pointsToTwips } from '@seamdoc/utils';
+import type { ExportTemplate } from '@seamdoc/types';
 import type {
   RenderAlignment,
   RenderBlock,
@@ -34,6 +35,10 @@ import type {
 
 type DocxBlock = Paragraph | Table;
 
+type StyleMapping = ExportTemplate['mapping'];
+
+const NO_MAPPING: StyleMapping = {};
+
 const ALIGNMENT: Record<RenderAlignment, (typeof AlignmentType)[keyof typeof AlignmentType]> = {
   left: AlignmentType.LEFT,
   center: AlignmentType.CENTER,
@@ -45,21 +50,33 @@ function toColor(hex: string): string {
   return hex.replace('#', '').toUpperCase();
 }
 
-function serializeRun(run: TextRun): DocxTextRun {
-  const options = {
-    text: run.text,
-    font: run.style.fontFamily,
-    size: pointsToHalfPoints(run.style.fontSize),
-    bold: run.style.fontWeight >= 600,
-    italics: run.style.italic,
-    color: toColor(run.style.color),
-  };
+function serializeRun(run: TextRun, templateStyled = false): DocxTextRun {
+  // When a template style drives the paragraph, direct font/size/color
+  // formatting is omitted so the Word style's typography wins; semantic
+  // emphasis (bold/italic/underline) is preserved.
+  const options = templateStyled
+    ? {
+        text: run.text,
+        bold: run.style.fontWeight >= 600,
+        italics: run.style.italic,
+      }
+    : {
+        text: run.text,
+        font: run.style.fontFamily,
+        size: pointsToHalfPoints(run.style.fontSize),
+        bold: run.style.fontWeight >= 600,
+        italics: run.style.italic,
+        color: toColor(run.style.color),
+      };
   return new DocxTextRun(run.style.underline ? { ...options, underline: {} } : options);
 }
 
-function serializeRuns(runs: readonly TextRun[]): (DocxTextRun | ExternalHyperlink)[] {
+function serializeRuns(
+  runs: readonly TextRun[],
+  templateStyled = false,
+): (DocxTextRun | ExternalHyperlink)[] {
   return runs.map((run) => {
-    const text = serializeRun(run);
+    const text = serializeRun(run, templateStyled);
     if (run.style.link !== '') {
       return new ExternalHyperlink({ children: [text], link: run.style.link });
     }
@@ -67,7 +84,11 @@ function serializeRuns(runs: readonly TextRun[]): (DocxTextRun | ExternalHyperli
   });
 }
 
-export function serializeHeading(node: RenderHeading): DocxBlock[] {
+export function serializeHeading(node: RenderHeading, mapping: StyleMapping = NO_MAPPING): DocxBlock[] {
+  const templateStyle = mapping[`h${node.level}`];
+  if (templateStyle !== undefined) {
+    return [new Paragraph({ style: templateStyle, children: serializeRuns(node.runs, true) })];
+  }
   return [
     new Paragraph({
       children: serializeRuns(node.runs),
@@ -80,7 +101,13 @@ export function serializeHeading(node: RenderHeading): DocxBlock[] {
   ];
 }
 
-export function serializeParagraph(node: RenderParagraph): DocxBlock[] {
+export function serializeParagraph(
+  node: RenderParagraph,
+  mapping: StyleMapping = NO_MAPPING,
+): DocxBlock[] {
+  if (mapping.paragraph !== undefined) {
+    return [new Paragraph({ style: mapping.paragraph, children: serializeRuns(node.runs, true) })];
+  }
   return [
     new Paragraph({
       children: serializeRuns(node.runs),
@@ -94,7 +121,16 @@ export function serializeParagraph(node: RenderParagraph): DocxBlock[] {
   ];
 }
 
-export function serializeCodeBlock(node: RenderCodeBlock): DocxBlock[] {
+export function serializeCodeBlock(
+  node: RenderCodeBlock,
+  mapping: StyleMapping = NO_MAPPING,
+): DocxBlock[] {
+  if (mapping.code !== undefined) {
+    const codeStyle = mapping.code;
+    return node.lines.map(
+      (line) => new Paragraph({ style: codeStyle, children: [new DocxTextRun({ text: line })] }),
+    );
+  }
   const style: RunStyle = node.style;
   return node.lines.map(
     (line, index) =>
@@ -116,7 +152,7 @@ export function serializeCodeBlock(node: RenderCodeBlock): DocxBlock[] {
   );
 }
 
-export function serializeQuote(node: RenderQuote): DocxBlock[] {
+export function serializeQuote(node: RenderQuote, mapping: StyleMapping = NO_MAPPING): DocxBlock[] {
   const indent = pointsToTwips(node.indent);
   const border = {
     left: {
@@ -127,6 +163,11 @@ export function serializeQuote(node: RenderQuote): DocxBlock[] {
   };
   return node.children.flatMap((child) => {
     if (child.type === 'paragraph') {
+      if (mapping.quote !== undefined) {
+        return [
+          new Paragraph({ style: mapping.quote, children: serializeRuns(child.runs, true) }),
+        ];
+      }
       return [
         new Paragraph({
           children: serializeRuns(child.runs),
@@ -140,7 +181,7 @@ export function serializeQuote(node: RenderQuote): DocxBlock[] {
         }),
       ];
     }
-    return serializeBlock(child);
+    return serializeBlock(child, mapping);
   });
 }
 
@@ -178,7 +219,7 @@ export function serializeList(node: RenderList, depth = 0): DocxBlock[] {
   return blocks;
 }
 
-export function serializeTable(node: RenderTable): DocxBlock[] {
+export function serializeTable(node: RenderTable, mapping: StyleMapping = NO_MAPPING): DocxBlock[] {
   const borders = {
     style: BorderStyle.SINGLE,
     size: Math.max(1, Math.round(node.borderWidth * 8)),
@@ -186,6 +227,7 @@ export function serializeTable(node: RenderTable): DocxBlock[] {
   };
   return [
     new Table({
+      ...(mapping.table === undefined ? {} : { style: mapping.table }),
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: node.rows.map(
         (row) =>
@@ -257,20 +299,20 @@ export function serializeRule(node: RenderRule): DocxBlock[] {
   ];
 }
 
-export function serializeBlock(block: RenderBlock): DocxBlock[] {
+export function serializeBlock(block: RenderBlock, mapping: StyleMapping = NO_MAPPING): DocxBlock[] {
   switch (block.type) {
     case 'heading':
-      return serializeHeading(block);
+      return serializeHeading(block, mapping);
     case 'paragraph':
-      return serializeParagraph(block);
+      return serializeParagraph(block, mapping);
     case 'codeBlock':
-      return serializeCodeBlock(block);
+      return serializeCodeBlock(block, mapping);
     case 'quote':
-      return serializeQuote(block);
+      return serializeQuote(block, mapping);
     case 'list':
       return serializeList(block);
     case 'table':
-      return serializeTable(block);
+      return serializeTable(block, mapping);
     case 'image':
       return serializeImage(block);
     case 'rule':

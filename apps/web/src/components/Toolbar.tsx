@@ -1,8 +1,20 @@
 /** Application toolbar: file actions, theme switching, settings, export. */
 
 import { useRef, useState } from 'react';
-import { Download, FilePlus, FolderOpen, Moon, Palette, Settings, Share, Sun } from 'lucide-react';
+import {
+  Download,
+  FilePlus,
+  FolderOpen,
+  LayoutTemplate,
+  Moon,
+  Palette,
+  Settings,
+  Share,
+  Sun,
+  X,
+} from 'lucide-react';
 import { builtinThemes, getBuiltinTheme, validateTheme } from '@seamdoc/themes';
+import { importTemplate as importDocxTemplate, TemplateImportError } from '@seamdoc/templates';
 import type { ExportFormat } from '@seamdoc/types';
 import { resolveActiveTheme, useAppStore } from '../store';
 import { downloadDocument, downloadThemeJson } from '../lib/export';
@@ -14,9 +26,11 @@ export function Toolbar() {
     settings,
     metadata,
     customThemes,
+    template,
     darkMode,
     setThemeId,
     addCustomTheme,
+    setTemplate,
     toggleDarkMode,
     setSettingsOpen,
     settingsOpen,
@@ -25,8 +39,10 @@ export function Toolbar() {
   } = useAppStore();
   const fileInput = useRef<HTMLInputElement>(null);
   const themeInput = useRef<HTMLInputElement>(null);
+  const templateInput = useRef<HTMLInputElement>(null);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
   const [themeError, setThemeError] = useState('');
+  const [templateError, setTemplateError] = useState('');
 
   const openFile = async (file: File | undefined) => {
     if (file === undefined) {
@@ -44,6 +60,7 @@ export function Toolbar() {
         resolveActiveTheme(themeId, customThemes),
         settings,
         metadata,
+        template,
       );
     } finally {
       setExporting(null);
@@ -72,6 +89,22 @@ export function Toolbar() {
       customThemes.find((theme) => theme.metadata.id === themeId) ?? getBuiltinTheme(themeId);
     if (active !== undefined) {
       downloadThemeJson(active);
+    }
+  };
+
+  const importTemplateFile = async (file: File | undefined) => {
+    if (file === undefined) {
+      return;
+    }
+    setTemplateError('');
+    try {
+      setTemplate(await importDocxTemplate(await file.arrayBuffer()));
+    } catch (error) {
+      setTemplateError(
+        error instanceof TemplateImportError
+          ? `Template import failed: ${error.message}`
+          : 'Template import failed: unexpected error.',
+      );
     }
   };
 
@@ -175,6 +208,52 @@ export function Toolbar() {
       {themeError !== '' && (
         <span role="alert" data-testid="theme-error" className="text-xs text-red-600">
           {themeError}
+        </span>
+      )}
+
+      <button
+        type="button"
+        onClick={() => templateInput.current?.click()}
+        title="Import Word template (.docx)"
+        aria-label="Import Word template"
+        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+      >
+        <LayoutTemplate size={18} />
+      </button>
+      <input
+        ref={templateInput}
+        type="file"
+        accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        className="hidden"
+        data-testid="template-file-input"
+        onChange={(event) => {
+          void importTemplateFile(event.target.files?.[0]);
+          event.target.value = '';
+        }}
+      />
+
+      {template !== null && (
+        <span
+          data-testid="active-template"
+          className="flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+        >
+          {template.metadata.name}
+          <button
+            type="button"
+            onClick={() => setTemplate(null)}
+            title="Remove template"
+            aria-label="Remove template"
+            data-testid="remove-template"
+            className="rounded-full p-0.5 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+          >
+            <X size={12} />
+          </button>
+        </span>
+      )}
+
+      {templateError !== '' && (
+        <span role="alert" data-testid="template-error" className="text-xs text-red-600">
+          {templateError}
         </span>
       )}
 

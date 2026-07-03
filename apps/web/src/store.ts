@@ -10,6 +10,7 @@ import { persist } from 'zustand/middleware';
 import type { DocumentMetadata, DocumentSettings } from '@seamdoc/types';
 import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 import { getBuiltinTheme, type Theme } from '@seamdoc/themes';
+import type { StyleMapping, TemplateProfile } from '@seamdoc/templates';
 
 export const SAMPLE_MARKDOWN = `# Welcome to Seamdoc
 
@@ -42,11 +43,15 @@ interface AppState {
   metadata: DocumentMetadata;
   /** Imported (community) themes, persisted locally. */
   customThemes: Theme[];
+  /** Active DOCX template profile; null when no template is applied. */
+  template: TemplateProfile | null;
   darkMode: boolean;
   settingsOpen: boolean;
   setMarkdown: (markdown: string) => void;
   setThemeId: (themeId: string) => void;
   addCustomTheme: (theme: Theme) => void;
+  setTemplate: (template: TemplateProfile | null) => void;
+  updateTemplateMapping: (mapping: StyleMapping) => void;
   updateSettings: (settings: Partial<DocumentSettings>) => void;
   updateMetadata: (metadata: Partial<DocumentMetadata>) => void;
   toggleDarkMode: () => void;
@@ -71,6 +76,7 @@ export const useAppStore = create<AppState>()(
       settings: DEFAULT_DOCUMENT_SETTINGS,
       metadata: DEFAULT_DOCUMENT_METADATA,
       customThemes: [],
+      template: null,
       darkMode: false,
       settingsOpen: false,
       setMarkdown: (markdown) => set({ markdown }),
@@ -83,6 +89,20 @@ export const useAppStore = create<AppState>()(
           ],
           themeId: theme.metadata.id,
         })),
+      setTemplate: (template) =>
+        set((state) => ({
+          template,
+          // Templates preserve the source document's page setup
+          // (docs/02-architecture/template-engine.md, preserved elements).
+          settings:
+            template === null ? state.settings : { ...state.settings, ...template.pageSettings },
+        })),
+      updateTemplateMapping: (mapping) =>
+        set((state) =>
+          state.template === null
+            ? {}
+            : { template: { ...state.template, mapping: { ...state.template.mapping, ...mapping } } },
+        ),
       updateSettings: (partial) =>
         set((state) => ({ settings: { ...state.settings, ...partial } })),
       updateMetadata: (partial) =>
@@ -99,6 +119,7 @@ export const useAppStore = create<AppState>()(
         settings: state.settings,
         metadata: state.metadata,
         customThemes: state.customThemes,
+        template: state.template,
         darkMode: state.darkMode,
       }),
     },

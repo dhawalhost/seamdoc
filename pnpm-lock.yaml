@@ -59,6 +59,9 @@ importers:
       '@seamdoc/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@seamdoc/templates':
+        specifier: workspace:^
+        version: link:../../packages/templates
       '@seamdoc/themes':
         specifier: workspace:*
         version: link:../../packages/themes

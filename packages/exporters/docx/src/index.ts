@@ -19,7 +19,13 @@ import type { ISectionOptions } from 'docx';
 import { RENDER_TREE_VERSION } from '@seamdoc/shared';
 import { pointsToHalfPoints, pointsToTwips } from '@seamdoc/utils';
 import type { RenderDocument, RenderHeaderFooter, RenderPage } from '@seamdoc/renderer';
-import type { Exporter, ExportFormat, ExportResult, ExportSettings } from '@seamdoc/types';
+import type {
+  Exporter,
+  ExportFormat,
+  ExportResult,
+  ExportSettings,
+  ExportTemplate,
+} from '@seamdoc/types';
 import { serializeBlock } from './serializers.js';
 
 const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -60,7 +66,7 @@ function buildHeaderFooter(
     : new Footer({ children: [paragraph] });
 }
 
-function buildSection(page: RenderPage): ISectionOptions {
+function buildSection(page: RenderPage, mapping: ExportTemplate['mapping']): ISectionOptions {
   const landscape = page.width > page.height;
   const header = buildHeaderFooter(page.header, 'header');
   const footer = buildHeaderFooter(page.footer, 'footer');
@@ -82,7 +88,7 @@ function buildSection(page: RenderPage): ISectionOptions {
     },
     ...(header instanceof Header ? { headers: { default: header } } : {}),
     ...(footer instanceof Footer ? { footers: { default: footer } } : {}),
-    children: page.children.flatMap(serializeBlock),
+    children: page.children.flatMap((block) => serializeBlock(block, mapping)),
   };
 }
 
@@ -105,12 +111,16 @@ export class DocxExporter implements Exporter<RenderDocument> {
       throw new Error('Render tree contains no pages.');
     }
 
+    const mapping = settings.template?.mapping ?? {};
     const docxDocument = new Document({
       title: settings.metadata.title,
       creator: settings.metadata.author,
       description: settings.metadata.description,
       keywords: settings.metadata.keywords.join(', '),
-      sections: document.pages.map(buildSection),
+      // Embedding the template's styles.xml makes mapped style ids resolve
+      // to the template's formatting (docs/02-architecture/template-engine.md).
+      ...(settings.template === undefined ? {} : { externalStyles: settings.template.stylesXml }),
+      sections: document.pages.map((page) => buildSection(page, mapping)),
     });
 
     const blob = await Packer.toArrayBuffer(docxDocument);
