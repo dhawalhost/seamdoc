@@ -12,17 +12,21 @@ import type {
   ExportFormat,
   ExportResult,
   ExportTemplate,
+  PipelineWarning,
 } from '@seamdoc/types';
 import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 import { parseMarkdown } from '@seamdoc/parser';
 import { fromMdast, validateDocument, type SdmDocument } from '@seamdoc/semantic-model';
 import { layoutDocument, validateRenderTree, type RenderDocument } from '@seamdoc/renderer';
 import { getBuiltinTheme, minimalTheme, validateTheme, type Theme } from '@seamdoc/themes';
+import type { PluginRegistry } from '@seamdoc/plugins';
 
 export interface RenderOptions {
   readonly theme?: Theme | string;
   readonly settings?: Partial<DocumentSettings>;
   readonly metadata?: Partial<DocumentMetadata>;
+  /** Plugins transform the SDM before layout (pipeline stage 7). */
+  readonly plugins?: PluginRegistry;
 }
 
 export interface RenderOutcome {
@@ -30,6 +34,8 @@ export interface RenderOutcome {
   readonly renderDocument: RenderDocument;
   readonly theme: Theme;
   readonly settings: DocumentSettings;
+  /** Recoverable diagnostics, e.g. isolated plugin failures. */
+  readonly warnings: readonly PipelineWarning[];
 }
 
 function resolveTheme(theme: Theme | string | undefined): Theme {
@@ -53,7 +59,7 @@ export function renderMarkdown(markdown: string, options: RenderOptions = {}): R
   const settings: DocumentSettings = { ...DEFAULT_DOCUMENT_SETTINGS, ...options.settings };
 
   const ast = parseMarkdown(markdown);
-  const semanticDocument = fromMdast(
+  let semanticDocument = fromMdast(
     ast,
     options.metadata === undefined ? {} : { metadata: options.metadata },
   );
@@ -62,6 +68,15 @@ export function renderMarkdown(markdown: string, options: RenderOptions = {}): R
   if (!validation.valid) {
     const details = validation.issues.map((issue) => `${issue.path}: ${issue.message}`).join('; ');
     throw new Error(`Semantic document validation failed: ${details}`);
+  }
+
+  const warnings: PipelineWarning[] = [];
+  if (options.plugins !== undefined) {
+    const pluginResult = options.plugins.run(semanticDocument);
+    semanticDocument = pluginResult.document;
+    for (const warning of pluginResult.warnings) {
+      warnings.push({ stage: `plugin:${warning.pluginId}`, message: warning.message });
+    }
   }
 
   const renderDocument = layoutDocument({ document: semanticDocument, theme, settings });
@@ -74,7 +89,7 @@ export function renderMarkdown(markdown: string, options: RenderOptions = {}): R
     throw new Error(`Render tree validation failed: ${details}`);
   }
 
-  return { semanticDocument, renderDocument, theme, settings };
+  return { semanticDocument, renderDocument, theme, settings, warnings };
 }
 
 export class ExporterRegistry {

@@ -1,7 +1,7 @@
 {
-  "name": "@seamdoc/core",
+  "name": "@seamdoc/plugins",
   "version": "0.1.0",
-  "description": "Pipeline orchestration",
+  "description": "Plugin SDK: plugin API, registration, lifecycle, validation, and execution",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -22,12 +22,10 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@seamdoc/parser": "workspace:*",
-    "@seamdoc/plugins": "workspace:^",
-    "@seamdoc/renderer": "workspace:*",
     "@seamdoc/semantic-model": "workspace:*",
-    "@seamdoc/shared": "workspace:*",
-    "@seamdoc/themes": "workspace:*",
     "@seamdoc/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@seamdoc/shared": "workspace:*"
   }
 }

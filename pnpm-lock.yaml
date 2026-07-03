@@ -122,6 +122,9 @@ importers:
       '@seamdoc/parser':
         specifier: workspace:*
         version: link:../parser
+      '@seamdoc/plugins':
+        specifier: workspace:^
+        version: link:../plugins
       '@seamdoc/renderer':
         specifier: workspace:*
         version: link:../renderer
@@ -200,6 +203,19 @@ importers:
       '@types/mdast':
         specifier: ^4.0.4
         version: 4.0.4
+
+  packages/plugins:
+    dependencies:
+      '@seamdoc/semantic-model':
+        specifier: workspace:*
+        version: link:../semantic-model
+      '@seamdoc/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      '@seamdoc/shared':
+        specifier: workspace:*
+        version: link:../shared
 
   packages/renderer:
     dependencies:
