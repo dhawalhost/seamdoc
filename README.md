@@ -49,6 +49,27 @@ pnpm dev
 
 Open http://localhost:5173/. See the [user guide](docs/01-product/user-guide.md) for how to use the UI, import themes, and import Word templates.
 
+## Deploy to Vercel
+
+The web app is a static Vite build and deploys cleanly to Vercel.
+
+1. Push this repo to GitHub (if it is not already).
+2. In [Vercel](https://vercel.com), **Add New Project** and import `dhawalhost/seamdoc` (or your fork).
+3. Leave **Root Directory** as the repository root. Vercel reads [`vercel.json`](vercel.json):
+   - Install: `pnpm install --frozen-lockfile`
+   - Build: `pnpm --filter @seamdoc/web... build`
+   - Output: `apps/web/dist`
+4. Set **Node.js** to **22.x** (Project Settings → General) if it is not already.
+5. Deploy. Every push to `main` will produce a new production deployment.
+
+Optional CLI deploy from your machine (requires `vercel` login):
+
+```bash
+pnpm dlx vercel
+```
+
+The app stays fully client-side on Vercel; documents are not uploaded to a server.
+
 ## License
 
 MIT
