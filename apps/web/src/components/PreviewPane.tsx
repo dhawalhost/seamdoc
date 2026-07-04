@@ -22,7 +22,7 @@ import type {
   TextRun,
 } from '@seamdoc/renderer';
 import type { DocumentSettings } from '@seamdoc/types';
-import type { Theme } from '@seamdoc/themes';
+import { getBuiltinTheme, withThemeDefaults, type Theme } from '@seamdoc/themes';
 import { imagePlaceholderLabel, isEmbeddableImageSrc } from '../lib/imagePolicy';
 
 interface PreviewPaneProps {
@@ -284,6 +284,23 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(funct
     }
   }, [debounced, theme, settings, refreshNonce]);
 
+  const themeObject = useMemo(() => {
+    if (typeof theme !== 'string') {
+      return withThemeDefaults(theme);
+    }
+    const builtin = getBuiltinTheme(theme);
+    return builtin === undefined ? null : withThemeDefaults(builtin);
+  }, [theme]);
+
+  const branding = themeObject?.branding;
+  const logoSrc =
+    branding !== undefined &&
+    branding.showLogo &&
+    branding.logo !== '' &&
+    isEmbeddableImageSrc(branding.logo)
+      ? branding.logo
+      : null;
+
   if (rendered === null) {
     return (
       <div className="p-6 text-sm text-red-600" data-testid="preview-error">
@@ -327,7 +344,7 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(funct
           <div
             key={page.id}
             data-testid="preview-page"
-            className="bg-white shadow-lg"
+            className="shadow-lg"
             style={{
               width: `${page.width}pt`,
               minHeight: `${page.height}pt`,
@@ -338,22 +355,39 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(funct
               paddingLeft: `${page.margins.left}pt`,
               boxSizing: 'border-box',
               position: 'relative',
+              background: themeObject?.colors.background ?? '#ffffff',
             }}
           >
-            {page.header !== null && (
+            {(page.header !== null || logoSrc !== null) && (
               <div
+                data-preview="page-chrome"
                 style={{
                   position: 'absolute',
-                  top: '24pt',
+                  top: 0,
                   left: 0,
                   right: 0,
-                  textAlign: 'center',
-                  fontFamily: page.header.style.fontFamily,
-                  fontSize: `${page.header.style.fontSize}pt`,
-                  color: page.header.style.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8pt',
+                  minHeight: '36pt',
+                  padding: '6pt 12pt',
+                  boxSizing: 'border-box',
+                  background: branding?.headerBackground ?? 'transparent',
+                  color: branding?.headerTextColor ?? page.header?.style.color,
+                  fontFamily: page.header?.style.fontFamily,
+                  fontSize: page.header !== null ? `${page.header.style.fontSize}pt` : '10pt',
                 }}
               >
-                {page.header.text}
+                {logoSrc !== null && (
+                  <img
+                    src={logoSrc}
+                    alt=""
+                    data-preview="theme-logo"
+                    style={{ maxHeight: '22pt', maxWidth: '80pt', objectFit: 'contain' }}
+                  />
+                )}
+                {page.header !== null ? page.header.text : null}
               </div>
             )}
             {page.children.map((block) => (

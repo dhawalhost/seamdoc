@@ -52,7 +52,7 @@ function resolveTheme(theme: Theme | string | undefined): Theme {
   // Invalid themes must never reach the renderer
   // (docs/02-architecture/theme-engine.md); fall back to the default theme.
   const validation = validateTheme(theme);
-  return validation.valid ? theme : minimalTheme;
+  return validation.valid && validation.theme !== null ? validation.theme : minimalTheme;
 }
 
 /** Runs the pipeline from Markdown text to a Render Tree. */

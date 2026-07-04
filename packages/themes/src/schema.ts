@@ -28,6 +28,22 @@ const headingStyleSchema = textStyleSchema.extend({
   spacing: spacingSchema,
 });
 
+/** Page chrome: logo and header bar (preview; exporters use theme colors). */
+export const DEFAULT_THEME_BRANDING = {
+  logo: '',
+  headerBackground: '#ffffff',
+  headerTextColor: '#111827',
+  showLogo: false,
+} as const;
+
+const brandingSchema = z.object({
+  /** Empty string or a `data:image/…` URL (privacy: no remote logos). */
+  logo: z.string(),
+  headerBackground: colorSchema,
+  headerTextColor: colorSchema,
+  showLogo: z.boolean(),
+});
+
 export const themeSchema = z.object({
   schemaVersion: z.literal(1),
   metadata: z.object({
@@ -38,6 +54,8 @@ export const themeSchema = z.object({
     description: z.string(),
     license: z.string(),
   }),
+  /** Defaults applied when older theme JSON omits branding. */
+  branding: brandingSchema.default({ ...DEFAULT_THEME_BRANDING }),
   typography: z.object({
     body: z.string().min(1),
     heading: z.string().min(1),
@@ -109,9 +127,35 @@ export const themeSchema = z.object({
 });
 
 export type Theme = z.infer<typeof themeSchema>;
+export type ThemeBranding = Theme['branding'];
 export type ThemeHeadingStyle = Theme['headings']['h1'];
 export type ThemeTextStyle = z.infer<typeof textStyleSchema>;
 export type ThemeAlignment = z.infer<typeof alignmentSchema>;
+
+/** Ensures branding exists on themes loaded before the field was added. */
+export function withThemeDefaults(theme: Theme): Theme {
+  return {
+    ...theme,
+    branding: theme.branding ?? { ...DEFAULT_THEME_BRANDING },
+  };
+}
+
+/** Deep-clone a theme for editing in the theme creator. */
+export function createThemeDraft(source: Theme, nameSuffix = ' (custom)'): Theme {
+  const base = withThemeDefaults(structuredClone(source));
+  const slug = base.metadata.id.replace(/-custom(-\d+)?$/, '');
+  return {
+    ...base,
+    metadata: {
+      ...base.metadata,
+      id: `${slug}-custom`,
+      name: base.metadata.name.endsWith(nameSuffix)
+        ? base.metadata.name
+        : `${base.metadata.name}${nameSuffix}`,
+      version: '1.0.0',
+    },
+  };
+}
 
 export interface ThemeValidationResult {
   readonly valid: boolean;

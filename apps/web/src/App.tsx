@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState, type DragEvent } from 'react';
-import { resolveActiveTheme, useAppStore } from './store';
+import { resolveActiveTheme, resolveThemeObject, useAppStore } from './store';
 import type { EditorPaneHandle } from './components/EditorPane';
 import { PreviewPane, type PreviewPaneHandle } from './components/PreviewPane';
 import { PreviewToolbar } from './components/PreviewToolbar';
@@ -7,6 +7,8 @@ import { EditorToolbar } from './components/EditorToolbar';
 import { Toolbar } from './components/Toolbar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { AppSettingsPanel } from './components/AppSettingsPanel';
+import { ThemeCreatorPanel } from './components/ThemeCreatorPanel';
+import { WebFontLoader } from './components/WebFontLoader';
 
 const EditorPane = lazy(async () => {
   const module = await import('./components/EditorPane');
@@ -31,6 +33,7 @@ export default function App() {
     highContrast,
     settingsOpen,
     appSettingsOpen,
+    themeCreatorOpen,
     previewZoom,
     printPreview,
     editorFullscreen,
@@ -101,6 +104,13 @@ export default function App() {
 
   const showEditor = !printPreview;
   const showPreview = !editorFullscreen;
+  const activeTheme = resolveThemeObject(themeId, customThemes);
+  const previewFonts = [
+    activeTheme.typography.body,
+    activeTheme.typography.heading,
+    activeTheme.typography.code,
+    settings.fontFamily ?? '',
+  ];
 
   return (
     <div
@@ -121,6 +131,7 @@ export default function App() {
       }}
       onDrop={(event) => void onDrop(event)}
     >
+      <WebFontLoader families={previewFonts} />
       <a href="#main-content" className="skip-link">
         Skip to editor
       </a>
@@ -185,6 +196,7 @@ export default function App() {
         {settingsOpen && <SettingsPanel />}
         {appSettingsOpen && <AppSettingsPanel />}
       </main>
+      {themeCreatorOpen && <ThemeCreatorPanel />}
       {dragging && (
         <div className="pointer-events-none fixed inset-0 flex items-center justify-center bg-blue-600/20">
           <p className="rounded bg-white px-6 py-3 text-lg font-medium shadow-lg dark:bg-neutral-800 dark:text-white">

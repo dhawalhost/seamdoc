@@ -2,6 +2,7 @@
 
 import { Maximize2, Replace, Search } from 'lucide-react';
 import { useAppStore } from '../store';
+import { TooltipButton, paneIconClass } from './TooltipButton';
 
 interface EditorToolbarProps {
   onFind: () => void;
@@ -21,38 +22,39 @@ export function EditorToolbar({ onFind, onReplace }: EditorToolbarProps) {
         Editor
       </span>
 
-      <button
-        type="button"
-        title="Find (Ctrl/Cmd+F)"
+      <TooltipButton
+        tooltip="Find text in the document (Ctrl+F / Cmd+F)"
         aria-label="Find"
-        data-testid="editor-find"
         onClick={onFind}
-        className="rounded p-1 text-neutral-600 hover:bg-neutral-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        data-testid="editor-find"
+        className={paneIconClass}
       >
         <Search size={16} />
-      </button>
+      </TooltipButton>
 
-      <button
-        type="button"
-        title="Replace (Ctrl/Cmd+H)"
+      <TooltipButton
+        tooltip="Find and replace text (Ctrl+H / Cmd+H)"
         aria-label="Replace"
-        data-testid="editor-replace"
         onClick={onReplace}
-        className="rounded p-1 text-neutral-600 hover:bg-neutral-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        data-testid="editor-replace"
+        className={paneIconClass}
       >
         <Replace size={16} />
-      </button>
+      </TooltipButton>
 
       <div className="mx-2 h-4 w-px bg-neutral-300 dark:bg-neutral-600" />
 
-      <button
-        type="button"
-        title={editorFullscreen ? 'Exit fullscreen editing' : 'Fullscreen editing'}
+      <TooltipButton
+        tooltip={
+          editorFullscreen
+            ? 'Show the preview pane again'
+            : 'Hide preview and use the full width for editing'
+        }
         aria-label={editorFullscreen ? 'Exit fullscreen editing' : 'Fullscreen editing'}
         aria-pressed={editorFullscreen}
-        data-testid="editor-fullscreen-toggle"
         onClick={toggleEditorFullscreen}
-        className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium ${
+        data-testid="editor-fullscreen-toggle"
+        className={`flex items-center gap-1 px-2 py-1 text-xs font-medium ${
           editorFullscreen
             ? 'bg-blue-600 text-white'
             : 'text-neutral-600 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-800'
@@ -60,7 +62,7 @@ export function EditorToolbar({ onFind, onReplace }: EditorToolbarProps) {
       >
         <Maximize2 size={14} />
         Fullscreen
-      </button>
+      </TooltipButton>
     </div>
   );
 }

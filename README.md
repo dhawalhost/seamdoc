@@ -12,6 +12,7 @@ templates, and a semantic rendering engine.
 
 The complete specification lives in [`docs/`](docs/):
 
+- **[User guide](docs/01-product/user-guide.md)** — toolbar icons, themes, templates, and settings
 - [`docs/00-overview/`](docs/00-overview/) — vision and project doctrine
 - [`docs/01-product/`](docs/01-product/) — PRD, feature list, functional requirements
 - [`docs/02-architecture/`](docs/02-architecture/) — architecture documents
@@ -38,6 +39,15 @@ pnpm build
 pnpm test
 pnpm lint
 ```
+
+### Run the web app
+
+```bash
+cd apps/web
+pnpm dev
+```
+
+Open http://localhost:5173/. See the [user guide](docs/01-product/user-guide.md) for how to use the UI, import themes, and import Word templates.
 
 ## License
 

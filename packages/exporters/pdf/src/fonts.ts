@@ -18,8 +18,28 @@ const SERIF_HINTS = [
   'palatino',
   'book antiqua',
   'serif',
+  'merriweather',
+  'lora',
+  'playfair',
+  'crimson',
+  'baskerville',
+  'caslon',
+  'spectral',
+  'domine',
+  'bitter',
 ];
-const MONO_HINTS = ['courier', 'consolas', 'menlo', 'monaco', 'mono', 'code'];
+const MONO_HINTS = [
+  'courier',
+  'consolas',
+  'menlo',
+  'monaco',
+  'mono',
+  'code',
+  'inconsolata',
+  'jetbrains',
+  'fira code',
+  'cascadia',
+];
 
 function classifyFamily(fontFamily: string): FontFamily {
   const normalized = fontFamily.toLowerCase();

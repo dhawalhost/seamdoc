@@ -9,7 +9,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { DocumentMetadata, DocumentSettings, ExportFormat } from '@seamdoc/types';
 import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
-import { getBuiltinTheme, type Theme } from '@seamdoc/themes';
+import {
+  createThemeDraft,
+  getBuiltinTheme,
+  withThemeDefaults,
+  type Theme,
+} from '@seamdoc/themes';
 import type { StyleMapping, TemplateProfile } from '@seamdoc/templates';
 import type { PreviewZoom } from './lib/previewZoom';
 
@@ -52,6 +57,9 @@ interface AppState {
   highContrast: boolean;
   settingsOpen: boolean;
   appSettingsOpen: boolean;
+  themeCreatorOpen: boolean;
+  /** Working copy in the theme creator; null when the portal is closed. */
+  themeDraft: Theme | null;
   previewZoom: PreviewZoom;
   printPreview: boolean;
   editorFullscreen: boolean;
@@ -62,6 +70,8 @@ interface AppState {
   setMarkdown: (markdown: string) => void;
   setThemeId: (themeId: string) => void;
   addCustomTheme: (theme: Theme) => void;
+  /** Persist a custom theme without switching the active document theme. */
+  saveCustomTheme: (theme: Theme) => void;
   setTemplate: (template: TemplateProfile | null) => void;
   updateTemplateMapping: (mapping: StyleMapping) => void;
   updateSettings: (settings: Partial<DocumentSettings>) => void;
@@ -70,6 +80,13 @@ interface AppState {
   toggleHighContrast: () => void;
   setSettingsOpen: (open: boolean) => void;
   setAppSettingsOpen: (open: boolean) => void;
+  openThemeCreator: () => void;
+  closeThemeCreator: () => void;
+  setThemeDraft: (theme: Theme) => void;
+  /** Save draft to the theme library (does not apply to the document). */
+  saveThemeDraft: () => boolean;
+  /** Save draft and apply it to the current document. */
+  applyThemeDraft: () => boolean;
   setPreviewZoom: (zoom: PreviewZoom) => void;
   togglePrintPreview: () => void;
   toggleEditorFullscreen: () => void;
@@ -80,12 +97,34 @@ interface AppState {
   newDocument: () => void;
 }
 
+function upsertTheme(themes: readonly Theme[], theme: Theme): Theme[] {
+  const normalized = withThemeDefaults(theme);
+  return [...themes.filter((item) => item.metadata.id !== normalized.metadata.id), normalized];
+}
+
 /** Resolves the active theme: custom themes first, then built-ins by id. */
 export function resolveActiveTheme(
   themeId: string,
   customThemes: readonly Theme[],
 ): Theme | string {
-  return customThemes.find((theme) => theme.metadata.id === themeId) ?? themeId;
+  const custom = customThemes.find((theme) => theme.metadata.id === themeId);
+  if (custom !== undefined) {
+    return withThemeDefaults(custom);
+  }
+  return themeId;
+}
+
+/** Full theme object for the creator and branding-aware preview. */
+export function resolveThemeObject(themeId: string, customThemes: readonly Theme[]): Theme {
+  const custom = customThemes.find((theme) => theme.metadata.id === themeId);
+  if (custom !== undefined) {
+    return withThemeDefaults(custom);
+  }
+  const builtin = getBuiltinTheme(themeId);
+  if (builtin !== undefined) {
+    return withThemeDefaults(builtin);
+  }
+  return withThemeDefaults(getBuiltinTheme('minimal')!);
 }
 
 export function isBuiltinThemeId(themeId: string): boolean {
@@ -106,6 +145,8 @@ export const useAppStore = create<AppState>()(
       highContrast: false,
       settingsOpen: false,
       appSettingsOpen: false,
+      themeCreatorOpen: false,
+      themeDraft: null,
       previewZoom: 1,
       printPreview: false,
       editorFullscreen: false,
@@ -117,11 +158,12 @@ export const useAppStore = create<AppState>()(
       setThemeId: (themeId) => set({ themeId }),
       addCustomTheme: (theme) =>
         set((state) => ({
-          customThemes: [
-            ...state.customThemes.filter((t) => t.metadata.id !== theme.metadata.id),
-            theme,
-          ],
+          customThemes: upsertTheme(state.customThemes, theme),
           themeId: theme.metadata.id,
+        })),
+      saveCustomTheme: (theme) =>
+        set((state) => ({
+          customThemes: upsertTheme(state.customThemes, theme),
         })),
       setTemplate: (template) =>
         set((state) => {
@@ -162,6 +204,42 @@ export const useAppStore = create<AppState>()(
       toggleHighContrast: () => set((state) => ({ highContrast: !state.highContrast })),
       setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
       setAppSettingsOpen: (appSettingsOpen) => set({ appSettingsOpen }),
+      openThemeCreator: () =>
+        set((state) => ({
+          themeCreatorOpen: true,
+          themeDraft: createThemeDraft(resolveThemeObject(state.themeId, state.customThemes)),
+          settingsOpen: false,
+          appSettingsOpen: false,
+        })),
+      closeThemeCreator: () => set({ themeCreatorOpen: false, themeDraft: null }),
+      setThemeDraft: (themeDraft) => set({ themeDraft: withThemeDefaults(themeDraft) }),
+      saveThemeDraft: () => {
+        let ok = false;
+        set((state) => {
+          if (state.themeDraft === null) {
+            return {};
+          }
+          ok = true;
+          return { customThemes: upsertTheme(state.customThemes, state.themeDraft) };
+        });
+        return ok;
+      },
+      applyThemeDraft: () => {
+        let ok = false;
+        set((state) => {
+          if (state.themeDraft === null) {
+            return {};
+          }
+          ok = true;
+          const theme = withThemeDefaults(state.themeDraft);
+          return {
+            customThemes: upsertTheme(state.customThemes, theme),
+            themeId: theme.metadata.id,
+            themeDraft: theme,
+          };
+        });
+        return ok;
+      },
       setPreviewZoom: (previewZoom) => set({ previewZoom }),
       togglePrintPreview: () =>
         set((state) => ({

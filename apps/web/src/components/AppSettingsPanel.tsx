@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import type { ExportFormat } from '@seamdoc/types';
 import { builtinThemes } from '@seamdoc/themes';
 import { useAppStore } from '../store';
+import { TooltipButton } from './TooltipButton';
 
 const fieldClass =
   'w-full rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-white';
@@ -36,14 +37,15 @@ export function AppSettingsPanel() {
         >
           App preferences
         </h2>
-        <button
-          type="button"
-          onClick={() => setAppSettingsOpen(false)}
+        <TooltipButton
+          tooltip="Close app preferences"
           aria-label="Close app preferences"
-          className="rounded p-1 text-neutral-500 hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:hover:bg-neutral-800"
+          onClick={() => setAppSettingsOpen(false)}
+          placement="top"
+          className="rounded p-1 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
         >
           <X size={16} />
-        </button>
+        </TooltipButton>
       </div>
 
       <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">

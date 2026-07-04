@@ -4,6 +4,8 @@ import { X } from 'lucide-react';
 import type { PageOrientation, PageSizeName, TemplateMappableNode } from '@seamdoc/types';
 import { PAGE_SIZES } from '@seamdoc/shared';
 import { useAppStore } from '../store';
+import { FontFamilySelect } from './FontFamilySelect';
+import { TooltipButton } from './TooltipButton';
 
 const fieldClass =
   'w-full rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-white';
@@ -49,14 +51,15 @@ export function SettingsPanel() {
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
           Document settings
         </h2>
-        <button
-          type="button"
-          onClick={() => setSettingsOpen(false)}
+        <TooltipButton
+          tooltip="Close document settings"
           aria-label="Close settings"
+          onClick={() => setSettingsOpen(false)}
+          placement="top"
           className="rounded p-1 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
         >
           <X size={16} />
-        </button>
+        </TooltipButton>
       </div>
 
       <div>
@@ -192,15 +195,13 @@ export function SettingsPanel() {
         <label className={labelClass} htmlFor="font-family">
           Body font (blank = theme default)
         </label>
-        <input
+        <FontFamilySelect
           id="font-family"
           data-testid="font-family"
           className={fieldClass}
-          placeholder="e.g. Georgia"
+          emptyLabel="Theme default"
           value={settings.fontFamily ?? ''}
-          onChange={(event) =>
-            updateSettings({ fontFamily: event.target.value === '' ? null : event.target.value })
-          }
+          onChange={(family) => updateSettings({ fontFamily: family === '' ? null : family })}
         />
       </div>
 

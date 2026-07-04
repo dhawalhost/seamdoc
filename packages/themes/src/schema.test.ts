@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { builtinThemes, getBuiltinTheme } from './builtin.js';
-import { validateTheme } from './schema.js';
+import {
+  DEFAULT_THEME_BRANDING,
+  createThemeDraft,
+  validateTheme,
+} from './schema.js';
 
 describe('built-in themes', () => {
-  it('ships the seven documented themes', () => {
+  it('ships core, Google Docs–style, and Microsoft Office–style themes', () => {
     expect(builtinThemes.map((theme) => theme.metadata.id)).toEqual([
       'minimal',
       'modern',
@@ -12,7 +16,38 @@ describe('built-in themes', () => {
       'corporate',
       'elegant',
       'documentation',
+      'spectrum',
+      'coral',
+      'spearmint',
+      'tropic',
+      'plum',
+      'geometric',
+      'writer',
+      'academic',
+      'newsletter',
+      'slate',
+      'sunset',
+      'forest',
+      'paper',
+      'midnight',
+      'meeting',
+      'proposal',
+      'office',
+      'facet',
+      'ion',
+      'organic',
+      'retrospect',
+      'slice',
+      'wisp',
+      'banded',
+      'dividend',
+      'whitepaper',
+      'resume',
+      'agenda',
+      'brochure',
+      'formal-letter',
     ]);
+    expect(builtinThemes).toHaveLength(37);
   });
 
   it.each(builtinThemes.map((theme) => [theme.metadata.id, theme] as const))(
@@ -44,5 +79,20 @@ describe('validateTheme', () => {
     const result = validateTheme(broken);
     expect(result.valid).toBe(false);
     expect(result.errors.some((error) => error.includes('colors.primary'))).toBe(true);
+  });
+
+  it('fills branding defaults when older theme JSON omits branding', () => {
+    const legacy = JSON.parse(JSON.stringify(builtinThemes[0])) as Record<string, unknown>;
+    delete legacy['branding'];
+    const result = validateTheme(legacy);
+    expect(result.valid).toBe(true);
+    expect(result.theme?.branding).toEqual(DEFAULT_THEME_BRANDING);
+  });
+
+  it('creates an editable draft with a custom id', () => {
+    const draft = createThemeDraft(builtinThemes[0]!);
+    expect(draft.metadata.id).toContain('-custom');
+    expect(draft.metadata.name).toContain('(custom)');
+    expect(draft.branding).toBeDefined();
   });
 });

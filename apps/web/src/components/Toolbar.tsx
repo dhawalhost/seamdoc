@@ -12,6 +12,7 @@ import {
   Share,
   SlidersHorizontal,
   Sun,
+  WandSparkles,
   X,
 } from 'lucide-react';
 import { builtinThemes, getBuiltinTheme, validateTheme } from '@seamdoc/themes';
@@ -20,6 +21,7 @@ import type { ExportFormat } from '@seamdoc/types';
 import { resolveActiveTheme, useAppStore } from '../store';
 import { downloadDocument, downloadThemeJson } from '../lib/export';
 import { computeDocumentStats, formatDocumentStats } from '../lib/documentStats';
+import { TooltipButton, toolbarIconClass } from './TooltipButton';
 
 export function Toolbar() {
   const {
@@ -37,6 +39,7 @@ export function Toolbar() {
     toggleDarkMode,
     setSettingsOpen,
     setAppSettingsOpen,
+    openThemeCreator,
     settingsOpen,
     appSettingsOpen,
     newDocument,
@@ -139,25 +142,23 @@ export function Toolbar() {
     >
       <span className="mr-2 text-lg font-semibold text-neutral-900 dark:text-white">Seamdoc</span>
 
-      <button
-        type="button"
-        onClick={newDocument}
-        title="New document"
+      <TooltipButton
+        tooltip="Start a blank document (clears the editor and applies your default theme)"
         aria-label="New document"
-        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        onClick={newDocument}
+        className={toolbarIconClass}
       >
         <FilePlus size={18} />
-      </button>
+      </TooltipButton>
 
-      <button
-        type="button"
-        onClick={() => fileInput.current?.click()}
-        title="Open Markdown file"
+      <TooltipButton
+        tooltip="Open a Markdown file (.md) from your computer"
         aria-label="Open Markdown file"
-        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        onClick={() => fileInput.current?.click()}
+        className={toolbarIconClass}
       >
         <FolderOpen size={18} />
-      </button>
+      </TooltipButton>
       <input
         ref={fileInput}
         type="file"
@@ -175,6 +176,7 @@ export function Toolbar() {
 
       <label
         htmlFor="theme-select"
+        title="Choose the visual style used in preview and export"
         className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300"
       >
         Theme
@@ -183,6 +185,7 @@ export function Toolbar() {
           value={themeId}
           onChange={(event) => setThemeId(event.target.value)}
           data-testid="theme-select"
+          title="Built-in and imported themes control fonts, colors, and spacing"
           className="rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
         >
           {builtinThemes.map((theme) => (
@@ -207,15 +210,24 @@ export function Toolbar() {
         )}
       </label>
 
-      <button
-        type="button"
-        onClick={() => themeInput.current?.click()}
-        title="Import theme (JSON)"
+      <TooltipButton
+        tooltip="Open the theme creator to design a theme visually (Save, Apply, or Download JSON)"
+        aria-label="Theme creator"
+        onClick={openThemeCreator}
+        data-testid="theme-creator-toggle"
+        className={toolbarIconClass}
+      >
+        <WandSparkles size={18} />
+      </TooltipButton>
+
+      <TooltipButton
+        tooltip="Upload a custom theme JSON file (export a built-in theme first to use as a template)"
         aria-label="Import theme"
-        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        onClick={() => themeInput.current?.click()}
+        className={toolbarIconClass}
       >
         <Palette size={18} />
-      </button>
+      </TooltipButton>
       <input
         ref={themeInput}
         type="file"
@@ -228,16 +240,15 @@ export function Toolbar() {
         }}
       />
 
-      <button
-        type="button"
-        onClick={exportTheme}
-        title="Export active theme (JSON)"
+      <TooltipButton
+        tooltip="Download the active theme as JSON so you can edit or share it"
         aria-label="Export active theme"
+        onClick={exportTheme}
         data-testid="theme-export-button"
-        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        className={toolbarIconClass}
       >
         <Share size={18} />
-      </button>
+      </TooltipButton>
 
       {themeError !== '' && (
         <span role="alert" data-testid="theme-error" className="text-xs text-red-600">
@@ -245,15 +256,14 @@ export function Toolbar() {
         </span>
       )}
 
-      <button
-        type="button"
-        onClick={() => templateInput.current?.click()}
-        title="Import Word template (.docx)"
+      <TooltipButton
+        tooltip="Upload a Word .docx template to apply corporate styles when exporting to DOCX"
         aria-label="Import Word template"
-        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        onClick={() => templateInput.current?.click()}
+        className={toolbarIconClass}
       >
         <LayoutTemplate size={18} />
-      </button>
+      </TooltipButton>
       <input
         ref={templateInput}
         type="file"
@@ -269,19 +279,20 @@ export function Toolbar() {
       {template !== null && (
         <span
           data-testid="active-template"
+          title="This Word template will be applied on the next DOCX export"
           className="flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
         >
           {template.metadata.name}
-          <button
-            type="button"
-            onClick={() => setTemplate(null)}
-            title="Remove template"
+          <TooltipButton
+            tooltip="Remove template and restore page settings from before import"
             aria-label="Remove template"
+            onClick={() => setTemplate(null)}
             data-testid="remove-template"
+            placement="top"
             className="rounded-full p-0.5 hover:bg-neutral-200 dark:hover:bg-neutral-700"
           >
             <X size={12} />
-          </button>
+          </TooltipButton>
         </span>
       )}
 
@@ -291,27 +302,25 @@ export function Toolbar() {
         </span>
       )}
 
-      <button
-        type="button"
-        onClick={() => setSettingsOpen(!settingsOpen)}
-        title="Document settings"
+      <TooltipButton
+        tooltip="Document title, page layout, headers, footers, and template style mapping"
         aria-label="Document settings"
+        onClick={() => setSettingsOpen(!settingsOpen)}
         data-testid="settings-toggle"
-        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        className={toolbarIconClass}
       >
         <Settings size={18} />
-      </button>
+      </TooltipButton>
 
-      <button
-        type="button"
-        onClick={() => setAppSettingsOpen(!appSettingsOpen)}
-        title="App preferences"
+      <TooltipButton
+        tooltip="App preferences: dark mode, high contrast, default theme, and export format"
         aria-label="App preferences"
+        onClick={() => setAppSettingsOpen(!appSettingsOpen)}
         data-testid="app-settings-toggle"
-        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        className={toolbarIconClass}
       >
         <SlidersHorizontal size={18} />
-      </button>
+      </TooltipButton>
 
       <div className="flex-1" />
 
@@ -324,26 +333,27 @@ export function Toolbar() {
       <span
         className="mr-2 text-xs text-neutral-500 dark:text-neutral-400"
         data-testid="word-count"
+        title="Word, line, and character counts for the current Markdown"
       >
         {stats}
       </span>
 
-      <button
-        type="button"
-        onClick={toggleDarkMode}
-        title="Toggle dark mode"
+      <TooltipButton
+        tooltip={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         aria-label="Toggle dark mode"
+        onClick={toggleDarkMode}
         data-testid="dark-mode-toggle"
-        className="rounded p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        className={toolbarIconClass}
       >
         {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-      </button>
+      </TooltipButton>
 
       <button
         type="button"
         onClick={() => void handleExport('pdf')}
         disabled={exporting !== null}
         data-testid="export-pdf-button"
+        title="Download the current document as a PDF file"
         className={exportButtonClass('pdf')}
       >
         <Download size={16} />
@@ -355,6 +365,7 @@ export function Toolbar() {
         onClick={() => void handleExport('docx')}
         disabled={exporting !== null}
         data-testid="export-button"
+        title="Download the current document as a Word (.docx) file"
         className={exportButtonClass('docx')}
       >
         <Download size={16} />

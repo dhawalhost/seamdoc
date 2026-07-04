@@ -1,5 +1,7 @@
 # Sample templates
 
+See **[User guide — Creating a Word template](../../docs/01-product/user-guide.md#creating-a-word-template-to-upload)** for style names, requirements, and import steps.
+
 Place a corporate `.docx` template here for manual testing. The template
 engine (`@seamdoc/templates`) will:
 
