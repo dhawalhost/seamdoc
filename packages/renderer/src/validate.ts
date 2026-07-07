@@ -77,7 +77,10 @@ function checkBlock(
   if (block.type === 'columns') {
     block.columns.forEach((col, colIndex) => {
       if (seenIds.has(col.id)) {
-        issues.push({ path: `${path}/columns/${colIndex}`, message: `Duplicate node id "${col.id}".` });
+        issues.push({
+          path: `${path}/columns/${colIndex}`,
+          message: `Duplicate node id "${col.id}".`,
+        });
       }
       seenIds.add(col.id);
       col.children.forEach((child, index) =>

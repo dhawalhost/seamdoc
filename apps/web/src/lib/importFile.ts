@@ -8,7 +8,6 @@ import { importHtml, importMdx, importAsciidoc } from '@seamdoc/importers';
 import { DEFAULT_DOCUMENT_METADATA } from '@seamdoc/shared';
 import type { SdmBlock, SdmInline } from '@seamdoc/semantic-model';
 
-
 export type ImportableFormat = 'markdown' | 'html' | 'mdx' | 'asciidoc';
 
 export interface ImportResult {
@@ -76,7 +75,6 @@ function reconstructBlockMarkdown(block: SdmBlock): string {
   return '';
 }
 
-
 /**
  * Reads a File and converts it to Markdown string.
  * Markdown files are returned as-is; other formats go through their
@@ -86,7 +84,9 @@ function reconstructBlockMarkdown(block: SdmBlock): string {
 export async function importFile(file: File): Promise<ImportResult> {
   const format = detectFormat(file.name);
   if (format === null) {
-    throw new Error(`Unsupported file type: "${file.name}". Supported: ${Object.keys(EXT_FORMAT_MAP).join(', ')}`);
+    throw new Error(
+      `Unsupported file type: "${file.name}". Supported: ${Object.keys(EXT_FORMAT_MAP).join(', ')}`,
+    );
   }
 
   const text = await file.text();
@@ -98,28 +98,19 @@ export async function importFile(file: File): Promise<ImportResult> {
 
     case 'mdx': {
       const doc = importMdx(text, metadata);
-      const md = doc.children
-        .map(reconstructBlockMarkdown)
-        .filter(Boolean)
-        .join('\n\n');
+      const md = doc.children.map(reconstructBlockMarkdown).filter(Boolean).join('\n\n');
       return { markdown: md || text, format, filename: file.name };
     }
 
     case 'html': {
       const doc = importHtml(text, metadata);
-      const md = doc.children
-        .map(reconstructBlockMarkdown)
-        .filter(Boolean)
-        .join('\n\n');
+      const md = doc.children.map(reconstructBlockMarkdown).filter(Boolean).join('\n\n');
       return { markdown: md || text, format, filename: file.name };
     }
 
     case 'asciidoc': {
       const doc = importAsciidoc(text, metadata);
-      const md = doc.children
-        .map(reconstructBlockMarkdown)
-        .filter(Boolean)
-        .join('\n\n');
+      const md = doc.children.map(reconstructBlockMarkdown).filter(Boolean).join('\n\n');
       return { markdown: md || text, format, filename: file.name };
     }
   }

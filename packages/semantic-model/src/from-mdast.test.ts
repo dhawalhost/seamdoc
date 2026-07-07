@@ -82,4 +82,31 @@ describe('fromMdast', () => {
     const doc = toSdm('# Valid\n\nbody');
     expect(validateDocument(doc).valid).toBe(true);
   });
+
+  it('converts markdown form elements to SdmInput nodes', () => {
+    const doc = toSdm('Check: [ ] Done: [x] Text: [______]');
+    const paragraph = doc.children[0] as SdmParagraph;
+    expect(paragraph.children).toHaveLength(6);
+    expect(paragraph.children[0]).toEqual({ type: 'text', value: 'Check: ' });
+    expect(paragraph.children[1]).toEqual({
+      type: 'input',
+      inputType: 'checkbox',
+      name: 'input_1',
+      checked: false,
+    });
+    expect(paragraph.children[2]).toEqual({ type: 'text', value: ' Done: ' });
+    expect(paragraph.children[3]).toEqual({
+      type: 'input',
+      inputType: 'checkbox',
+      name: 'input_2',
+      checked: true,
+    });
+    expect(paragraph.children[4]).toEqual({ type: 'text', value: ' Text: ' });
+    expect(paragraph.children[5]).toEqual({
+      type: 'input',
+      inputType: 'text',
+      name: 'input_3',
+      width: 6,
+    });
+  });
 });

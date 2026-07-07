@@ -146,7 +146,10 @@ export function googleFontsStylesheetUrl(families: readonly string[]): string | 
     return null;
   }
   const query = families
-    .map((family) => `family=${encodeURIComponent(family).replace(/%20/g, '+')}:ital,wght@0,400;0,700;1,400;1,700`)
+    .map(
+      (family) =>
+        `family=${encodeURIComponent(family).replace(/%20/g, '+')}:ital,wght@0,400;0,700;1,400;1,700`,
+    )
     .join('&');
   return `https://fonts.googleapis.com/css2?${query}&display=swap`;
 }

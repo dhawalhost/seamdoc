@@ -10,6 +10,7 @@ import type { RenderDocument } from '@seamdoc/renderer';
 import type { Exporter, ExportFormat, ExportResult, ExportSettings } from '@seamdoc/types';
 import { FontRegistry } from './fonts.js';
 import { PageRenderer } from './draw.js';
+import { encryptPDF } from '@pdfsmaller/pdf-encrypt-lite';
 
 const PDF_MIME_TYPE = 'application/pdf';
 
@@ -58,10 +59,23 @@ export class PdfExporter implements Exporter<RenderDocument> {
     }
 
     const bytes = await pdf.save({ useObjectStreams: false });
-    const data = bytes.buffer.slice(
+    let data = bytes.buffer.slice(
       bytes.byteOffset,
       bytes.byteOffset + bytes.byteLength,
     ) as ArrayBuffer;
+
+    if (settings.pdfSecurity) {
+      const userPassword = settings.pdfSecurity.userPassword || '';
+      const ownerPassword = settings.pdfSecurity.ownerPassword || '';
+      if (userPassword !== '' || ownerPassword !== '') {
+        const encryptedBytes = await encryptPDF(new Uint8Array(data), userPassword, ownerPassword);
+        data = encryptedBytes.buffer.slice(
+          encryptedBytes.byteOffset,
+          encryptedBytes.byteOffset + encryptedBytes.byteLength,
+        ) as ArrayBuffer;
+      }
+    }
+
     return {
       filename: settings.filename.endsWith('.pdf') ? settings.filename : `${settings.filename}.pdf`,
       mimeType: PDF_MIME_TYPE,

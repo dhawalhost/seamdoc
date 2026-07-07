@@ -36,7 +36,6 @@ const MIME_TYPES: Record<ExportFormat, string> = {
   epub: 'application/epub+zip',
 };
 
-
 function buildRegistry(): ExporterRegistry {
   const registry = new ExporterRegistry();
   registry.register(docxExporter);
@@ -57,20 +56,28 @@ export async function compileRoute(c: Context): Promise<Response> {
 
   const markdown = body['markdown'];
   if (typeof markdown !== 'string' || markdown.trim() === '') {
-    return c.json({ error: '`markdown` is required and must be a non-empty string.', code: 'MISSING_MARKDOWN' }, 400);
+    return c.json(
+      { error: '`markdown` is required and must be a non-empty string.', code: 'MISSING_MARKDOWN' },
+      400,
+    );
   }
 
   const format = (body['format'] as ExportFormat | undefined) ?? 'docx';
   if (!SUPPORTED_FORMATS.has(format)) {
     return c.json(
-      { error: `Unsupported format "${format}". Supported: ${[...SUPPORTED_FORMATS].join(', ')}.`, code: 'UNSUPPORTED_FORMAT' },
+      {
+        error: `Unsupported format "${format}". Supported: ${[...SUPPORTED_FORMATS].join(', ')}.`,
+        code: 'UNSUPPORTED_FORMAT',
+      },
       400,
     );
   }
 
   const filename = typeof body['filename'] === 'string' ? body['filename'] : 'document';
-  const settings = typeof body['settings'] === 'object' && body['settings'] !== null ? body['settings'] : {};
-  const metadataOverride = typeof body['metadata'] === 'object' && body['metadata'] !== null ? body['metadata'] : {};
+  const settings =
+    typeof body['settings'] === 'object' && body['settings'] !== null ? body['settings'] : {};
+  const metadataOverride =
+    typeof body['metadata'] === 'object' && body['metadata'] !== null ? body['metadata'] : {};
   const theme = typeof body['theme'] === 'string' ? body['theme'] : 'minimal';
 
   let outcome;
@@ -82,7 +89,11 @@ export async function compileRoute(c: Context): Promise<Response> {
     });
   } catch (error) {
     return c.json(
-      { error: 'Document rendering failed.', detail: (error as Error).message, code: 'RENDER_ERROR' },
+      {
+        error: 'Document rendering failed.',
+        detail: (error as Error).message,
+        code: 'RENDER_ERROR',
+      },
       422,
     );
   }
@@ -90,7 +101,10 @@ export async function compileRoute(c: Context): Promise<Response> {
   const registry = buildRegistry();
   const exporter = registry.find(format);
   if (!exporter) {
-    return c.json({ error: `No exporter found for format "${format}".`, code: 'EXPORTER_NOT_FOUND' }, 500);
+    return c.json(
+      { error: `No exporter found for format "${format}".`, code: 'EXPORTER_NOT_FOUND' },
+      500,
+    );
   }
 
   let result;

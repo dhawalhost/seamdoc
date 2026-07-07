@@ -47,6 +47,31 @@ export interface DocumentSettings {
   readonly paragraphSpacing: number | null;
   readonly customPageSize?: PageDimensions | null;
   readonly pageBorder?: PageBorder | null;
+  readonly pdfSecurity?: PdfSecuritySettings | null;
+  readonly activeBrandPackId?: string | null;
+}
+
+export interface PdfSecuritySettings {
+  readonly userPassword?: string | null;
+  readonly ownerPassword?: string | null;
+  readonly permissions?: {
+    readonly printing?: 'highResolution' | 'lowResolution' | 'none';
+    readonly modifying?: boolean;
+    readonly copying?: boolean;
+    readonly annotating?: boolean;
+  };
+}
+
+export interface BrandPack {
+  readonly id: string;
+  readonly name: string;
+  readonly primaryColor: string;
+  readonly secondaryColor: string;
+  readonly fontFamilies: readonly string[];
+  readonly logoUrl?: string;
+  readonly watermarkUrl?: string;
+  readonly headerText?: string;
+  readonly footerText?: string;
 }
 
 export interface PageBorder {
@@ -89,6 +114,7 @@ export interface ExportSettings {
   readonly filename: string;
   readonly metadata: DocumentMetadata;
   readonly template?: ExportTemplate;
+  readonly pdfSecurity?: PdfSecuritySettings | null;
 }
 
 export interface ExportResult {

@@ -5,7 +5,14 @@
  */
 
 import { SDM_VERSION } from '@seamdoc/shared';
-import type { SdmBlock, SdmDocument, SdmInline, SdmListItem, SdmTableRow, SdmColumns } from './nodes.js';
+import type {
+  SdmBlock,
+  SdmDocument,
+  SdmInline,
+  SdmListItem,
+  SdmTableRow,
+  SdmColumns,
+} from './nodes.js';
 
 const BLOCK_TYPES: ReadonlySet<SdmBlock['type']> = new Set([
   'heading',
@@ -26,6 +33,7 @@ const INLINE_TYPES: ReadonlySet<SdmInline['type']> = new Set([
   'lineBreak',
   'link',
   'image',
+  'input',
 ]);
 
 export interface ValidationIssue {
@@ -189,6 +197,20 @@ function validateInlines(
       case 'image':
         if (typeof inline.src !== 'string' || typeof inline.alt !== 'string') {
           issues.push({ path: inlinePath, message: 'Image must have string src and alt.' });
+        }
+        break;
+      case 'input':
+        if (inline.inputType !== 'checkbox' && inline.inputType !== 'text') {
+          issues.push({
+            path: `${inlinePath}/inputType`,
+            message: 'Input type must be "checkbox" or "text".',
+          });
+        }
+        if (typeof inline.name !== 'string' || inline.name === '') {
+          issues.push({
+            path: `${inlinePath}/name`,
+            message: 'Input name must be a non-empty string.',
+          });
         }
         break;
       default: {

@@ -484,10 +484,10 @@ function buildTableRow(
       const alignment = table.alignments[index] ?? 'none';
       const style = header
         ? {
-          ...baseRunStyle(theme),
-          fontWeight: theme.table.headerFontWeight,
-          color: theme.table.headerColor,
-        }
+            ...baseRunStyle(theme),
+            fontWeight: theme.table.headerFontWeight,
+            color: theme.table.headerColor,
+          }
         : baseRunStyle(theme);
       return {
         id: ids.next('cell'),

@@ -9,12 +9,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { DocumentMetadata, DocumentSettings, ExportFormat } from '@seamdoc/types';
 import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
-import {
-  createThemeDraft,
-  getBuiltinTheme,
-  withThemeDefaults,
-  type Theme,
-} from '@seamdoc/themes';
+import { createThemeDraft, getBuiltinTheme, withThemeDefaults, type Theme } from '@seamdoc/themes';
 import type { StyleMapping, TemplateProfile } from '@seamdoc/templates';
 import type { PreviewZoom } from './lib/previewZoom';
 

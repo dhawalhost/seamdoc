@@ -43,9 +43,9 @@ jobs:
           DOCS_DIR="${{ github.event.inputs.docs_dir }}"
           THEME="${{ github.event.inputs.theme }}"
           FORMAT="${{ github.event.inputs.format }}"
-          
+
           echo "Compiling documents in directory: $DOCS_DIR using theme: $THEME to format: $FORMAT"
-          
+
           # Find all markdown files in the specified directory and compile them
           find "$DOCS_DIR" -name "*.md" -type f | while read -r file; do
             echo "Processing: $file"

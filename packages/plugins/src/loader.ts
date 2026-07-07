@@ -12,7 +12,7 @@ import type { SeamdocPlugin, SeamdocPluginManifest } from './types.js';
  * conforming to the SeamdocPlugin interface.
  */
 export async function loadPluginFromUrl(url: string): Promise<SeamdocPlugin> {
-  const module = await import(/* @vite-ignore */ url) as Record<string, unknown>;
+  const module = (await import(/* @vite-ignore */ url)) as Record<string, unknown>;
   const candidate = module['plugin'] ?? module['default'];
   const validation = validatePlugin(candidate);
   if (!validation.valid) {
@@ -40,7 +40,6 @@ export function loadPlugin(manifest: SeamdocPluginManifest): SeamdocPlugin {
     impl = await pluginLoaderHelper.loadPluginFromUrl(manifest.entrypoint);
     return impl;
   };
-
 
   // Return a synchronous facade that delegates to the lazy-loaded impl.
   // For the `transform` hook (which is synchronous by spec), we eagerly
@@ -80,4 +79,3 @@ export function loadPlugin(manifest: SeamdocPluginManifest): SeamdocPlugin {
     },
   };
 }
-

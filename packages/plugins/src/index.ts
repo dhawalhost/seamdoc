@@ -11,4 +11,3 @@ export type {
 export { PluginRegistry, validatePlugin } from './registry.js';
 export { createCodeBlockPlugin, definePlugin, type CodeBlockPluginOptions } from './helpers.js';
 export { loadPlugin, loadPluginFromUrl, pluginLoaderHelper } from './loader.js';
-

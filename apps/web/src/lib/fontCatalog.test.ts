@@ -15,10 +15,7 @@ describe('fontCatalog', () => {
   });
 
   it('collects only web fonts for preview loading', () => {
-    expect(webFontsToLoad(['Calibri', 'Inter', 'Roboto', 'Inter'])).toEqual([
-      'Inter',
-      'Roboto',
-    ]);
+    expect(webFontsToLoad(['Calibri', 'Inter', 'Roboto', 'Inter'])).toEqual(['Inter', 'Roboto']);
   });
 
   it('builds a Google Fonts stylesheet URL', () => {

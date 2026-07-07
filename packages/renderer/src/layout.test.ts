@@ -13,7 +13,6 @@ import type {
   RenderColumns,
 } from './render-tree.js';
 
-
 function layout(markdown: string, settings = DEFAULT_DOCUMENT_SETTINGS) {
   const document = fromMdast(parseMarkdown(markdown));
   return layoutDocument({ document, theme: minimalTheme, settings });
@@ -214,4 +213,3 @@ describe('layoutDocument', () => {
     expect(firstBlock1?.bounds.x).toBeGreaterThan(DEFAULT_DOCUMENT_SETTINGS.margins.left);
   });
 });
-

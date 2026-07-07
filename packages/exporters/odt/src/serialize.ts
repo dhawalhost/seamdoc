@@ -75,10 +75,9 @@ function serializeBlock(block: RenderBlock): string {
         })
         .join('\n');
       const colCount = block.columnWidths.length || 1;
-      const cols = Array.from(
-        { length: colCount },
-        () => `        <table:table-column/>`,
-      ).join('\n');
+      const cols = Array.from({ length: colCount }, () => `        <table:table-column/>`).join(
+        '\n',
+      );
       return `      <table:table>\n${cols}\n${rows}\n      </table:table>`;
     }
     case 'image': {
@@ -98,8 +97,8 @@ function serializeBlock(block: RenderBlock): string {
 }
 
 /** Serializes all page blocks to ODT body XML. */
-export function serializeDocument(pages: ReadonlyArray<{ children: readonly RenderBlock[] }>): string {
-  return pages
-    .flatMap((page) => page.children.map(serializeBlock))
-    .join('\n');
+export function serializeDocument(
+  pages: ReadonlyArray<{ children: readonly RenderBlock[] }>,
+): string {
+  return pages.flatMap((page) => page.children.map(serializeBlock)).join('\n');
 }

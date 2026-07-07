@@ -89,7 +89,8 @@ export function importNotionBlocks(blocks: Record<string, unknown>[]): SdmBlock[
         items: currentList.items.map((item) => {
           const type = currentList!.ordered ? 'numbered_list_item' : 'bulleted_list_item';
           const typeObj = getNestedRecord(item, type);
-          const richText = getNestedArray(typeObj, 'rich_text') as Record<string, unknown>[] | undefined;
+          const richText = getNestedArray(typeObj, 'rich_text') as
+            Record<string, unknown>[] | undefined;
           const children = parseRichText(richText);
           return {
             type: 'listItem' as const,
@@ -125,7 +126,8 @@ export function importNotionBlocks(blocks: Record<string, unknown>[]): SdmBlock[
     switch (type) {
       case 'paragraph': {
         const paragraph = getNestedRecord(block, 'paragraph');
-        const richText = getNestedArray(paragraph, 'rich_text') as Record<string, unknown>[] | undefined;
+        const richText = getNestedArray(paragraph, 'rich_text') as
+          Record<string, unknown>[] | undefined;
         sdmBlocks.push({
           type: 'paragraph',
           children: parseRichText(richText),
@@ -134,7 +136,8 @@ export function importNotionBlocks(blocks: Record<string, unknown>[]): SdmBlock[
       }
       case 'heading_1': {
         const heading = getNestedRecord(block, 'heading_1');
-        const richText = getNestedArray(heading, 'rich_text') as Record<string, unknown>[] | undefined;
+        const richText = getNestedArray(heading, 'rich_text') as
+          Record<string, unknown>[] | undefined;
         sdmBlocks.push({
           type: 'heading',
           level: 1,
@@ -144,7 +147,8 @@ export function importNotionBlocks(blocks: Record<string, unknown>[]): SdmBlock[
       }
       case 'heading_2': {
         const heading = getNestedRecord(block, 'heading_2');
-        const richText = getNestedArray(heading, 'rich_text') as Record<string, unknown>[] | undefined;
+        const richText = getNestedArray(heading, 'rich_text') as
+          Record<string, unknown>[] | undefined;
         sdmBlocks.push({
           type: 'heading',
           level: 2,
@@ -154,7 +158,8 @@ export function importNotionBlocks(blocks: Record<string, unknown>[]): SdmBlock[
       }
       case 'heading_3': {
         const heading = getNestedRecord(block, 'heading_3');
-        const richText = getNestedArray(heading, 'rich_text') as Record<string, unknown>[] | undefined;
+        const richText = getNestedArray(heading, 'rich_text') as
+          Record<string, unknown>[] | undefined;
         sdmBlocks.push({
           type: 'heading',
           level: 3,
@@ -164,7 +169,8 @@ export function importNotionBlocks(blocks: Record<string, unknown>[]): SdmBlock[
       }
       case 'quote': {
         const quote = getNestedRecord(block, 'quote');
-        const richText = getNestedArray(quote, 'rich_text') as Record<string, unknown>[] | undefined;
+        const richText = getNestedArray(quote, 'rich_text') as
+          Record<string, unknown>[] | undefined;
         sdmBlocks.push({
           type: 'quote',
           children: [
@@ -197,8 +203,11 @@ export function importNotionBlocks(blocks: Record<string, unknown>[]): SdmBlock[
         const image = getNestedRecord(block, 'image');
         const file = getNestedRecord(image, 'file');
         const external = getNestedRecord(image, 'external');
-        const src = (getNestedString(file, 'url') || getNestedString(external, 'url') || '') as string;
-        const captionArray = getNestedArray(image, 'caption') as Record<string, unknown>[] | undefined;
+        const src = (getNestedString(file, 'url') ||
+          getNestedString(external, 'url') ||
+          '') as string;
+        const captionArray = getNestedArray(image, 'caption') as
+          Record<string, unknown>[] | undefined;
         const caption = captionArray?.map((t) => (t.plain_text as string) || '').join('') || '';
         sdmBlocks.push({
           type: 'paragraph',
@@ -248,7 +257,10 @@ export function importNotionBlocks(blocks: Record<string, unknown>[]): SdmBlock[
   return sdmBlocks;
 }
 
-export function importNotion(blocks: Record<string, unknown>[], metadata?: Partial<DocumentMetadata>): SdmDocument {
+export function importNotion(
+  blocks: Record<string, unknown>[],
+  metadata?: Partial<DocumentMetadata>,
+): SdmDocument {
   return {
     type: 'document',
     version: 1,

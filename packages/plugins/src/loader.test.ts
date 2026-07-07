@@ -17,9 +17,7 @@ describe('Plugin Loader', () => {
       teardown: () => {},
     };
 
-    const spy = vi
-      .spyOn(pluginLoaderHelper, 'loadPluginFromUrl')
-      .mockResolvedValue(mockPlugin);
+    const spy = vi.spyOn(pluginLoaderHelper, 'loadPluginFromUrl').mockResolvedValue(mockPlugin);
 
     const manifest: SeamdocPluginManifest = {
       id: 'mock-plugin',

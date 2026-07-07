@@ -97,6 +97,30 @@ function collectRuns(
         // images are handled by the layout engine.
         out.push({ text: node.alt, style: { ...style, italic: true } });
         break;
+      case 'input':
+        if (node.inputType === 'checkbox') {
+          out.push({
+            text: node.checked ? '[x]' : '[ ]',
+            style,
+            input: {
+              inputType: 'checkbox',
+              name: node.name,
+              ...(node.checked !== undefined ? { checked: node.checked } : {}),
+            },
+          });
+        } else {
+          out.push({
+            text: `[${'_'.repeat(node.width ?? 10)}]`,
+            style,
+            input: {
+              inputType: 'text',
+              name: node.name,
+              ...(node.width !== undefined ? { width: node.width } : {}),
+            },
+          });
+        }
+        break;
+
       default: {
         const exhaustive: never = node;
         throw new Error(`Unhandled inline node: ${JSON.stringify(exhaustive)}`);

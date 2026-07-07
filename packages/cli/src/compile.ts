@@ -40,10 +40,7 @@ export interface CompileOptions {
 
 type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 
-export async function compileDocument(
-  inputPath: string,
-  options: CompileOptions,
-): Promise<string> {
+export async function compileDocument(inputPath: string, options: CompileOptions): Promise<string> {
   // 1. Read input markdown file
   let content: string;
   try {
@@ -70,7 +67,9 @@ export async function compileDocument(
       }
       themeObj = val.theme;
     } catch (error) {
-      throw new Error(`Failed to load custom theme from "${themeArg}": ${(error as Error).message}`);
+      throw new Error(
+        `Failed to load custom theme from "${themeArg}": ${(error as Error).message}`,
+      );
     }
   } else {
     themeObj = getBuiltinTheme(themeArg);
@@ -90,7 +89,9 @@ export async function compileDocument(
         mapping: profile.mapping,
       };
     } catch (error) {
-      throw new Error(`Failed to load template from "${options.template}": ${(error as Error).message}`);
+      throw new Error(
+        `Failed to load template from "${options.template}": ${(error as Error).message}`,
+      );
     }
   }
 
@@ -124,7 +125,9 @@ export async function compileDocument(
         left: parts[3]!,
       };
     } else {
-      throw new Error('Margins must be specified as four comma-separated numbers: top,right,bottom,left');
+      throw new Error(
+        'Margins must be specified as four comma-separated numbers: top,right,bottom,left',
+      );
     }
   }
 
@@ -216,7 +219,9 @@ export async function compileDocument(
     await fs.mkdir(path.dirname(resolvedFilename), { recursive: true });
     await fs.writeFile(resolvedFilename, new Uint8Array(exportResult.data));
   } catch (error) {
-    throw new Error(`Failed to write output file to "${resolvedFilename}": ${(error as Error).message}`);
+    throw new Error(
+      `Failed to write output file to "${resolvedFilename}": ${(error as Error).message}`,
+    );
   }
 
   return resolvedFilename;
