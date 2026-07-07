@@ -9,6 +9,8 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { AppSettingsPanel } from './components/AppSettingsPanel';
 import { ThemeCreatorPanel } from './components/ThemeCreatorPanel';
 import { WebFontLoader } from './components/WebFontLoader';
+import { ExportWizard } from './components/ExportWizard';
+import { importFile, isSupportedFile, FORMAT_LABELS } from './lib/importFile';
 
 const EditorPane = lazy(async () => {
   const module = await import('./components/EditorPane');
@@ -17,11 +19,6 @@ const EditorPane = lazy(async () => {
 
 type ScrollSource = 'none' | 'editor' | 'preview';
 
-function isMarkdownFile(file: File): boolean {
-  return (
-    file.name.endsWith('.md') || file.name.endsWith('.markdown') || file.type === 'text/markdown'
-  );
-}
 
 export default function App() {
   const {
@@ -43,6 +40,7 @@ export default function App() {
     setDragDropError,
   } = useAppStore();
   const [dragging, setDragging] = useState(false);
+  const [exportWizardOpen, setExportWizardOpen] = useState(false);
   const editorRef = useRef<EditorPaneHandle>(null);
   const previewRef = useRef<PreviewPaneHandle>(null);
   const scrollSource = useRef<ScrollSource>('none');
@@ -87,17 +85,26 @@ export default function App() {
 
       const files = [...event.dataTransfer.files];
       if (files.length !== 1) {
-        setDragDropError('Drop a single Markdown (.md) file.');
+        setDragDropError('Drop a single file (.md, .html, .mdx, .adoc).');
         return;
       }
 
       const file = files[0];
-      if (file === undefined || !isMarkdownFile(file)) {
-        setDragDropError('Only Markdown (.md) files are supported.');
+      if (file === undefined || !isSupportedFile(file.name)) {
+        setDragDropError(
+          `Unsupported file. Supported formats: ${Object.values(FORMAT_LABELS).join(', ')}.`,
+        );
         return;
       }
 
-      setMarkdown(await file.text());
+      try {
+        const result = await importFile(file);
+        setMarkdown(result.markdown);
+      } catch (error) {
+        setDragDropError(
+          error instanceof Error ? error.message : 'Failed to import file.',
+        );
+      }
     },
     [setDragDropError, setMarkdown],
   );
@@ -135,7 +142,7 @@ export default function App() {
       <a href="#main-content" className="skip-link">
         Skip to editor
       </a>
-      <Toolbar />
+      <Toolbar onOpenExportWizard={() => setExportWizardOpen(true)} />
       {dragDropError !== '' && (
         <div
           role="alert"
@@ -197,10 +204,16 @@ export default function App() {
         {appSettingsOpen && <AppSettingsPanel />}
       </main>
       {themeCreatorOpen && <ThemeCreatorPanel />}
+      {exportWizardOpen && <ExportWizard onClose={() => setExportWizardOpen(false)} />}
       {dragging && (
         <div className="pointer-events-none fixed inset-0 flex items-center justify-center bg-blue-600/20">
-          <p className="rounded bg-white px-6 py-3 text-lg font-medium shadow-lg dark:bg-neutral-800 dark:text-white">
-            Drop your Markdown file to open it
+          <p className="rounded-xl bg-white px-6 py-4 text-center shadow-2xl dark:bg-neutral-800">
+            <span className="block text-lg font-semibold text-neutral-900 dark:text-white">
+              Drop to import
+            </span>
+            <span className="mt-1 block text-sm text-neutral-500 dark:text-neutral-400">
+              Markdown, HTML, MDX, or AsciiDoc
+            </span>
           </p>
         </div>
       )}

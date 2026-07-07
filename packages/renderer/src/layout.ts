@@ -17,6 +17,7 @@ import type {
   SdmQuote,
   SdmTable,
   SdmTableRow,
+  // SdmColumns,
 } from '@seamdoc/semantic-model';
 import type { Theme } from '@seamdoc/themes';
 import { highlightCodeToLines } from '@seamdoc/highlighter';
@@ -96,6 +97,9 @@ export function layoutDocument(input: LayoutInput): RenderDocument {
 }
 
 function resolvePageSize(settings: DocumentSettings): PageDimensions {
+  if (settings.customPageSize) {
+    return settings.customPageSize;
+  }
   const base = PAGE_SIZES[settings.pageSize];
   if (settings.orientation === 'landscape') {
     return { width: base.height, height: base.width };
@@ -148,6 +152,15 @@ function spacingOf(block: RenderBlock): number {
 }
 
 function repositionBlock(block: RenderBlock, x: number, y: number): RenderBlock {
+  if (block.type === 'columns') {
+    const repositionedCols = block.columns.map((col) => {
+      const colChildren = col.children.map((child) => {
+        return repositionBlock(child, x + child.bounds.x, y + child.bounds.y);
+      });
+      return { ...col, children: colChildren };
+    });
+    return { ...block, columns: repositionedCols, bounds: { ...block.bounds, x, y } };
+  }
   return { ...block, bounds: { ...block.bounds, x, y } };
 }
 
@@ -157,6 +170,7 @@ function buildPage(children: readonly RenderBlock[], ctx: PaginationContext): Re
     width: ctx.pageSize.width,
     height: ctx.pageSize.height,
     margins: ctx.settings.margins,
+    border: ctx.settings.pageBorder || null,
     header: buildHeaderFooter(ctx.settings.header, false, ctx),
     footer: buildHeaderFooter(ctx.settings.footer, ctx.settings.pageNumbers, ctx),
     children,
@@ -296,6 +310,55 @@ function buildBlock(
       return [buildList(block, theme, width, ids, indent)];
     case 'table':
       return [buildTable(block, theme, width, ids)];
+    case 'columns': {
+      const gap = 12;
+      const colCount = block.children.length;
+      if (colCount === 0) {
+        return [];
+      }
+      const colWidth = (width - gap * (colCount - 1)) / colCount;
+
+      const columns = block.children.map((col) => {
+        const children = col.children.flatMap((child) =>
+          buildBlock(child, theme, colWidth, ids, indent),
+        );
+        return {
+          id: ids.next('column'),
+          children,
+          width: colWidth,
+        };
+      });
+
+      const colHeights = columns.map((col) =>
+        col.children.reduce((sum, child) => sum + child.bounds.height + spacingOf(child), 0),
+      );
+      const height = Math.max(...colHeights, 0);
+
+      const positionedColumns = columns.map((col, colIndex) => {
+        const startX = colIndex * (colWidth + gap);
+        let currentY = 0;
+        const colChildren = col.children.map((child) => {
+          const childHeight = child.bounds.height + spacingOf(child);
+          const pos = repositionBlock(child, startX, currentY);
+          currentY += childHeight;
+          return pos;
+        });
+        return {
+          ...col,
+          children: colChildren,
+        };
+      });
+
+      return [
+        {
+          type: 'columns',
+          id: ids.next('columns'),
+          columns: positionedColumns,
+          spacing: { before: 12, after: 12 },
+          bounds: bounds(width, height),
+        },
+      ];
+    }
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled block node: ${JSON.stringify(exhaustive)}`);
@@ -421,10 +484,10 @@ function buildTableRow(
       const alignment = table.alignments[index] ?? 'none';
       const style = header
         ? {
-            ...baseRunStyle(theme),
-            fontWeight: theme.table.headerFontWeight,
-            color: theme.table.headerColor,
-          }
+          ...baseRunStyle(theme),
+          fontWeight: theme.table.headerFontWeight,
+          color: theme.table.headerColor,
+        }
         : baseRunStyle(theme);
       return {
         id: ids.next('cell'),

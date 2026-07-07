@@ -1,0 +1,31 @@
+{
+  "name": "@seamdoc/importers",
+  "version": "0.1.0",
+  "description": "Seamdoc document importers — parses HTML, Notion block JSON, MDX, and AsciiDoc to the Semantic Document Model",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@seamdoc/parser": "workspace:*",
+    "@seamdoc/semantic-model": "workspace:*",
+    "@seamdoc/types": "workspace:*",
+    "@seamdoc/shared": "workspace:*",
+    "node-html-parser": "^6.1.13"
+  }
+}

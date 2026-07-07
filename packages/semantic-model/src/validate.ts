@@ -5,7 +5,7 @@
  */
 
 import { SDM_VERSION } from '@seamdoc/shared';
-import type { SdmBlock, SdmDocument, SdmInline, SdmListItem, SdmTableRow } from './nodes.js';
+import type { SdmBlock, SdmDocument, SdmInline, SdmListItem, SdmTableRow, SdmColumns } from './nodes.js';
 
 const BLOCK_TYPES: ReadonlySet<SdmBlock['type']> = new Set([
   'heading',
@@ -15,6 +15,7 @@ const BLOCK_TYPES: ReadonlySet<SdmBlock['type']> = new Set([
   'thematicBreak',
   'list',
   'table',
+  'columns',
 ]);
 
 const INLINE_TYPES: ReadonlySet<SdmInline['type']> = new Set([
@@ -102,6 +103,20 @@ function validateBlock(block: SdmBlock, path: string, issues: ValidationIssue[])
         validateTableRow(row, `${path}/rows/${index}`, issues);
       });
       break;
+    case 'columns': {
+      const columnsBlock = block as SdmColumns;
+      columnsBlock.children.forEach((col, colIndex) => {
+        const colPath = `${path}/children/${colIndex}`;
+        if (col.type !== 'column') {
+          issues.push({ path: colPath, message: 'Column children must have type "column".' });
+          return;
+        }
+        col.children.forEach((child, childIndex) => {
+          validateBlock(child, `${colPath}/children/${childIndex}`, issues);
+        });
+      });
+      break;
+    }
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled block type: ${String(exhaustive)}`);

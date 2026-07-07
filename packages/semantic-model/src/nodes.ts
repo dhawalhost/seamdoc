@@ -106,8 +106,25 @@ export interface SdmTable {
   readonly rows: readonly SdmTableRow[];
 }
 
+export interface SdmColumn {
+  readonly type: 'column';
+  readonly children: readonly SdmBlock[];
+}
+
+export interface SdmColumns {
+  readonly type: 'columns';
+  readonly children: readonly SdmColumn[];
+}
+
 export type SdmBlock =
-  SdmHeading | SdmParagraph | SdmCodeBlock | SdmQuote | SdmThematicBreak | SdmList | SdmTable;
+  | SdmHeading
+  | SdmParagraph
+  | SdmCodeBlock
+  | SdmQuote
+  | SdmThematicBreak
+  | SdmList
+  | SdmTable
+  | SdmColumns;
 
 export interface SdmDocument {
   readonly type: 'document';

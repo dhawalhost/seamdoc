@@ -23,6 +23,8 @@ export type {
   SdmTableRow,
   SdmText,
   SdmThematicBreak,
+  SdmColumn,
+  SdmColumns,
 } from './nodes.js';
 export { cloneDocument } from './clone.js';
 export { fromMdast, type FromMdastOptions } from './from-mdast.js';

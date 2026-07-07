@@ -23,6 +23,8 @@ import type {
 import type { FontRegistry } from './fonts.js';
 import { sanitizeText } from './fonts.js';
 
+
+
 interface Rgb {
   readonly r: number;
   readonly g: number;
@@ -126,6 +128,17 @@ export class PageRenderer {
   }
 
   async drawPage(): Promise<void> {
+    if (this.pageSpec.border !== null) {
+      const borderWidth = this.pageSpec.border.width;
+      this.page.drawRectangle({
+        x: borderWidth / 2,
+        y: borderWidth / 2,
+        width: this.pageSpec.width - borderWidth,
+        height: this.pageSpec.height - borderWidth,
+        borderColor: toColor(this.pageSpec.border.color),
+        borderWidth: borderWidth,
+      });
+    }
     if (this.pageSpec.header !== null) {
       await this.drawHeaderFooter(this.pageSpec.header, 'header');
     }
@@ -192,6 +205,13 @@ export class PageRenderer {
         return this.drawImagePlaceholder(block, x, topY, width);
       case 'rule':
         return this.drawRule(block, x, topY, width);
+      case 'columns':
+        for (const col of block.columns) {
+          for (const child of col.children) {
+            await this.drawBlock(child, child.bounds.x, child.bounds.y, child.bounds.width);
+          }
+        }
+        return block.bounds.height;
       default: {
         const exhaustive: never = block;
         throw new Error(`Unhandled render block: ${String(exhaustive)}`);

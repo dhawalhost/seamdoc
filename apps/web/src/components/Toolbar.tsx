@@ -23,7 +23,7 @@ import { downloadDocument, downloadThemeJson } from '../lib/export';
 import { computeDocumentStats, formatDocumentStats } from '../lib/documentStats';
 import { TooltipButton, toolbarIconClass } from './TooltipButton';
 
-export function Toolbar() {
+export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => void }) {
   const {
     markdown,
     themeId,
@@ -358,6 +358,18 @@ export function Toolbar() {
       >
         <Download size={16} />
         {exporting === 'pdf' ? 'Exporting…' : 'Export PDF'}
+      </button>
+
+      <button
+        type="button"
+        onClick={onOpenExportWizard}
+        disabled={exporting !== null}
+        data-testid="export-wizard-button"
+        title="Open the Export Wizard to choose format and settings"
+        className="flex items-center gap-2 rounded border border-blue-600 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:hover:bg-neutral-800"
+      >
+        <WandSparkles size={16} />
+        Export…
       </button>
 
       <button

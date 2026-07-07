@@ -1,0 +1,40 @@
+{
+  "name": "@seamdoc/api",
+  "version": "0.1.0",
+  "description": "SeamDoc Cloud API — REST service for document compilation and rendering",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "node --watch dist/index.js",
+    "start": "node dist/index.js",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@seamdoc/core": "workspace:*",
+    "@seamdoc/types": "workspace:*",
+    "@seamdoc/shared": "workspace:*",
+    "@seamdoc/themes": "workspace:*",
+    "@seamdoc/exporter-docx": "workspace:*",
+    "@seamdoc/exporter-pdf": "workspace:*",
+    "@seamdoc/exporter-html": "workspace:*",
+    "@seamdoc/exporter-pptx": "workspace:*",
+    "@seamdoc/exporter-odt": "workspace:*",
+    "@seamdoc/importers": "workspace:*",
+    "@seamdoc/parser": "workspace:*",
+    "@seamdoc/semantic-model": "workspace:*",
+    "@seamdoc/renderer": "workspace:*",
+    "hono": "^4.4.12",
+    "@hono/node-server": "^1.12.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
+    "@types/node": "^22.0.0",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.0"
+  }
+}
