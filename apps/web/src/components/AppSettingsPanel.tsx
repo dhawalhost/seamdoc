@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react';
 import type { ExportFormat } from '@seamdoc/types';
+import { FEATURE_FLAGS } from '../lib/features';
 import { builtinThemes } from '@seamdoc/themes';
 import { useAppStore } from '../store';
 import { TooltipButton } from './TooltipButton';
@@ -17,10 +18,12 @@ export function AppSettingsPanel() {
     defaultThemeId,
     defaultExportFormat,
     customThemes,
+    geminiApiKey,
     toggleDarkMode,
     toggleHighContrast,
     setDefaultThemeId,
     setDefaultExportFormat,
+    setGeminiApiKey,
     setAppSettingsOpen,
   } = useAppStore();
 
@@ -107,6 +110,23 @@ export function AppSettingsPanel() {
           <option value="pdf">PDF</option>
         </select>
       </div>
+
+      {FEATURE_FLAGS.enableAi && (
+        <div>
+          <label className={labelClass} htmlFor="gemini-api-key">
+            Gemini API Key (AI Layout & Theme)
+          </label>
+          <input
+            id="gemini-api-key"
+            type="password"
+            data-testid="pref-gemini-api-key"
+            className={fieldClass}
+            value={geminiApiKey}
+            onChange={(event) => setGeminiApiKey(event.target.value)}
+            placeholder="Enter Gemini API key..."
+          />
+        </div>
+      )}
 
       <p className="text-xs text-neutral-500 dark:text-neutral-400">
         Preferences are saved locally. New documents use the default theme.

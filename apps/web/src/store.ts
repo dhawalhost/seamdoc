@@ -10,7 +10,9 @@ import { persist } from 'zustand/middleware';
 import type { DocumentMetadata, DocumentSettings, ExportFormat } from '@seamdoc/types';
 import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 import { createThemeDraft, getBuiltinTheme, withThemeDefaults, type Theme } from '@seamdoc/themes';
+import { renderMarkdown, analyzeDocumentStructure, type CriticFinding } from '@seamdoc/core';
 import type { StyleMapping, TemplateProfile } from '@seamdoc/templates';
+
 import type { PreviewZoom } from './lib/previewZoom';
 
 export const SAMPLE_MARKDOWN = `# Welcome to Seamdoc
@@ -62,6 +64,14 @@ interface AppState {
   defaultThemeId: string;
   defaultExportFormat: ExportFormat;
   dragDropError: string;
+  geminiApiKey: string;
+  criticOpen: boolean;
+  criticFindings: readonly CriticFinding[];
+  criticLoading: boolean;
+  setGeminiApiKey: (key: string) => void;
+  setCriticOpen: (open: boolean) => void;
+  runCritic: () => Promise<void>;
+  applyCriticFix: (findingId: string) => void;
   setMarkdown: (markdown: string) => void;
   setThemeId: (themeId: string) => void;
   addCustomTheme: (theme: Theme) => void;
@@ -128,7 +138,7 @@ export function isBuiltinThemeId(themeId: string): boolean {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       markdown: SAMPLE_MARKDOWN,
       themeId: 'minimal',
       settings: DEFAULT_DOCUMENT_SETTINGS,
@@ -149,7 +159,69 @@ export const useAppStore = create<AppState>()(
       defaultThemeId: 'minimal',
       defaultExportFormat: 'docx',
       dragDropError: '',
+      geminiApiKey: '',
+      criticOpen: false,
+      criticFindings: [],
+      criticLoading: false,
+      setGeminiApiKey: (geminiApiKey) => set({ geminiApiKey }),
+      setCriticOpen: (criticOpen) =>
+        set({ criticOpen, settingsOpen: false, appSettingsOpen: false }),
+      runCritic: async () => {
+        const { markdown, geminiApiKey } = get();
+        set({ criticLoading: true });
+        try {
+          const doc = renderMarkdown(markdown).semanticDocument;
+          const findings = await analyzeDocumentStructure(doc, geminiApiKey);
+          set({ criticFindings: findings });
+        } catch (err) {
+          console.error('[ai-critic] Failed:', err);
+        } finally {
+          set({ criticLoading: false });
+        }
+      },
+      applyCriticFix: (findingId) => {
+        const { markdown } = get();
+        if (findingId.startsWith('hierarchy-')) {
+          const doc = renderMarkdown(markdown).semanticDocument;
+          const part = findingId.split('-')[1];
+          const idx = parseInt(part ?? '0', 10);
+          const block = doc.children[idx];
+          if (block && block.type === 'heading') {
+            const currentLevel = block.level;
+            let prevLevel = 0;
+            for (let i = idx - 1; i >= 0; i--) {
+              const child = doc.children[i];
+              if (child && child.type === 'heading') {
+                prevLevel = (child as { level: number }).level;
+                break;
+              }
+            }
+            const targetLevel = prevLevel === 0 ? 1 : prevLevel + 1;
+            const currentHeaderPrefix = '#'.repeat(currentLevel) + ' ';
+            const targetHeaderPrefix = '#'.repeat(targetLevel) + ' ';
+
+            const textVal = block.children
+              .map((c) => (c as { value?: string }).value || '')
+              .join('')
+              .trim();
+            const lines = markdown.split('\n');
+            const lineIndex = lines.findIndex(
+              (line) => line.trim().startsWith(currentHeaderPrefix) && line.includes(textVal),
+            );
+            if (lineIndex !== -1) {
+              const line = lines[lineIndex];
+              if (line !== undefined) {
+                lines[lineIndex] = line.replace(currentHeaderPrefix, targetHeaderPrefix);
+                set({ markdown: lines.join('\n') });
+                // Trigger critic rerun
+                get().runCritic();
+              }
+            }
+          }
+        }
+      },
       setMarkdown: (markdown) => set({ markdown }),
+
       setThemeId: (themeId) => set({ themeId }),
       addCustomTheme: (theme) =>
         set((state) => ({
@@ -273,6 +345,7 @@ export const useAppStore = create<AppState>()(
         previewZoom: state.previewZoom,
         defaultThemeId: state.defaultThemeId,
         defaultExportFormat: state.defaultExportFormat,
+        geminiApiKey: state.geminiApiKey,
       }),
     },
   ),

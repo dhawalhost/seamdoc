@@ -15,10 +15,12 @@ import {
   WandSparkles,
   X,
 } from 'lucide-react';
+import { FEATURE_FLAGS } from '../lib/features';
 import { builtinThemes, getBuiltinTheme, validateTheme } from '@seamdoc/themes';
 import { importTemplate as importDocxTemplate, TemplateImportError } from '@seamdoc/templates';
 import type { ExportFormat } from '@seamdoc/types';
 import { resolveActiveTheme, useAppStore } from '../store';
+
 import { downloadDocument, downloadThemeJson } from '../lib/export';
 import { computeDocumentStats, formatDocumentStats } from '../lib/documentStats';
 import { TooltipButton, toolbarIconClass } from './TooltipButton';
@@ -42,6 +44,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
     openThemeCreator,
     settingsOpen,
     appSettingsOpen,
+    criticOpen,
+    setCriticOpen,
     newDocument,
     setMarkdown,
   } = useAppStore();
@@ -321,6 +325,18 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
       >
         <SlidersHorizontal size={18} />
       </TooltipButton>
+
+      {FEATURE_FLAGS.enableAi && (
+        <TooltipButton
+          tooltip="AI Layout Critic: review document for formatting, hierarchy and spacing"
+          aria-label="AI Layout Critic"
+          onClick={() => setCriticOpen(!criticOpen)}
+          data-testid="critic-toggle"
+          className={toolbarIconClass}
+        >
+          <WandSparkles size={18} />
+        </TooltipButton>
+      )}
 
       <div className="flex-1" />
 

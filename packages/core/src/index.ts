@@ -40,6 +40,13 @@ export interface RenderOutcome {
   readonly warnings: readonly PipelineWarning[];
 }
 
+export {
+  runHeuristicCritic,
+  analyzeDocumentStructure,
+  generateThemeFromPrompt,
+  type CriticFinding,
+} from './ai.js';
+
 function resolveTheme(theme: Theme | string | undefined): Theme {
   if (theme === undefined) {
     return minimalTheme;
