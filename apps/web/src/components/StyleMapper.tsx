@@ -75,7 +75,6 @@ export function StyleMapper() {
         })}
       </div>
     </div>
-
   );
 }
 export default StyleMapper;
