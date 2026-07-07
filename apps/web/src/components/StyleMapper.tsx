@@ -1,18 +1,75 @@
-import type { MappableNode } from '@seamdoc/templates';
+import type { MappableNode, StyleMapping } from '@seamdoc/templates';
 import { useAppStore } from '../store';
 
-const MAPPABLE_LABELS: Record<MappableNode, string> = {
-  h1: 'Heading 1',
-  h2: 'Heading 2',
-  h3: 'Heading 3',
-  h4: 'Heading 4',
-  h5: 'Heading 5',
-  h6: 'Heading 6',
-  paragraph: 'Body Text',
-  quote: 'Block Quote',
-  code: 'Code Block',
-  table: 'Table',
-};
+// Local placeholder for internationalization translation helper
+const t = (key: string): string => key;
+
+function getMappableLabel(node: MappableNode): string {
+  switch (node) {
+    case 'h1':
+      return t('Heading 1');
+    case 'h2':
+      return t('Heading 2');
+    case 'h3':
+      return t('Heading 3');
+    case 'h4':
+      return t('Heading 4');
+    case 'h5':
+      return t('Heading 5');
+    case 'h6':
+      return t('Heading 6');
+    case 'paragraph':
+      return t('Body Text');
+    case 'quote':
+      return t('Block Quote');
+    case 'code':
+      return t('Code Block');
+    case 'table':
+      return t('Table');
+    default:
+      return '';
+  }
+}
+
+function getMappingValue(mapping: StyleMapping, node: MappableNode): string | undefined {
+  switch (node) {
+    case 'h1':
+      return mapping.h1;
+    case 'h2':
+      return mapping.h2;
+    case 'h3':
+      return mapping.h3;
+    case 'h4':
+      return mapping.h4;
+    case 'h5':
+      return mapping.h5;
+    case 'h6':
+      return mapping.h6;
+    case 'paragraph':
+      return mapping.paragraph;
+    case 'quote':
+      return mapping.quote;
+    case 'code':
+      return mapping.code;
+    case 'table':
+      return mapping.table;
+    default:
+      return undefined;
+  }
+}
+
+const NODES_LIST: readonly MappableNode[] = [
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'paragraph',
+  'quote',
+  'code',
+  'table',
+];
 
 export function StyleMapper() {
   const { template, updateTemplateMapping } = useAppStore();
@@ -20,7 +77,7 @@ export function StyleMapper() {
   if (template === null) {
     return (
       <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-center text-sm text-neutral-500 dark:border-neutral-700">
-        Upload a Word template (.docx) in the toolbar to configure visual style mappings.
+        {t('Upload a Word template (.docx) in the toolbar to configure visual style mappings.')}
       </div>
     );
   }
@@ -32,16 +89,16 @@ export function StyleMapper() {
     <div className="space-y-4" data-testid="template-mapping">
       <div>
         <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">
-          Word Style Mapper
+          {t('Word Style Mapper')}
         </h4>
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Map SeamDoc semantic elements to custom style IDs defined in your template.
+          {t('Map SeamDoc semantic elements to custom style IDs defined in your template.')}
         </p>
       </div>
 
       <div className="space-y-3">
-        {(Object.keys(MAPPABLE_LABELS) as MappableNode[]).map((node) => {
-          const activeStyleId = template.mapping[node] ?? '';
+        {NODES_LIST.map((node) => {
+          const activeStyleId = getMappingValue(template.mapping, node) ?? '';
           const stylesList = node === 'table' ? tableStyles : paragraphStyles;
 
           return (
@@ -50,7 +107,7 @@ export function StyleMapper() {
                 htmlFor={`map-style-${node}`}
                 className="text-xs font-medium text-neutral-600 dark:text-neutral-400"
               >
-                {MAPPABLE_LABELS[node]}
+                {getMappableLabel(node)}
               </label>
               <select
                 id={`map-style-${node}`}
@@ -63,7 +120,7 @@ export function StyleMapper() {
                 }}
                 className="w-48 rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-xs text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
               >
-                <option value="">Default theme style</option>
+                <option value="">{t('Default theme style')}</option>
                 {stylesList.map((style) => (
                   <option key={style.id} value={style.id}>
                     {style.name} ({style.id})
