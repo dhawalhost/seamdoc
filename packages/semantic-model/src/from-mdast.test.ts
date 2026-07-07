@@ -118,4 +118,3 @@ describe('fromMdast', () => {
     expect(doc.children[2]?.type).toBe('paragraph');
   });
 });
-

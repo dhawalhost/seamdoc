@@ -105,7 +105,6 @@ function serializeBlock(block: RenderBlock): string {
       const exhaustive: never = block;
       throw new Error(`Unhandled block: ${JSON.stringify(exhaustive)}`);
     }
-
   }
 }
 

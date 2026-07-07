@@ -222,4 +222,3 @@ describe('layoutDocument', () => {
     expect(tree.pages[1]?.children[0]?.type).toBe('paragraph');
   });
 });
-

@@ -17,7 +17,6 @@ export interface EditorPaneHandle {
   insertText: (text: string) => void;
 }
 
-
 interface EditorPaneProps {
   value: string;
   darkMode: boolean;
@@ -80,7 +79,6 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(function
       editor.focus();
     },
   }));
-
 
   return (
     <div className="h-full" data-testid="editor">

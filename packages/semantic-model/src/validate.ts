@@ -26,7 +26,6 @@ const BLOCK_TYPES: ReadonlySet<SdmBlock['type']> = new Set([
   'pageBreak',
 ]);
 
-
 const INLINE_TYPES: ReadonlySet<SdmInline['type']> = new Set([
   'text',
   'emphasis',
@@ -103,7 +102,6 @@ function validateBlock(block: SdmBlock, path: string, issues: ValidationIssue[])
     case 'pageBreak':
       break;
     case 'list':
-
       block.items.forEach((item, index) => {
         validateListItem(item, `${path}/items/${index}`, issues);
       });

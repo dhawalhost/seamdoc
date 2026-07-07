@@ -141,7 +141,6 @@ function paginate(blocks: readonly RenderBlock[], ctx: PaginationContext): reado
     cursorY += blockHeight;
   }
 
-
   if (current.length > 0 || pages.length === 0) {
     flush();
   }

@@ -262,7 +262,6 @@ function Block({ block }: { block: RenderBlock }): ReactNode {
       const exhaustive: never = block;
       throw new Error(`Unhandled preview block: ${JSON.stringify(exhaustive)}`);
     }
-
   }
 }
 

@@ -242,7 +242,6 @@ export class PageRenderer {
     }
   }
 
-
   private async drawRuns(
     runs: readonly TextRun[],
     x: number,

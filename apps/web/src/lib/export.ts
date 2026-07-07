@@ -21,7 +21,6 @@ registry.register(odtExporter);
 registry.register(pdfExporter);
 registry.register(pptxExporter);
 
-
 function triggerDownload(data: BlobPart, mimeType: string, filename: string): void {
   const blob = new Blob([data], { type: mimeType });
   const url = URL.createObjectURL(blob);

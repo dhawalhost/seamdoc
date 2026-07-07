@@ -201,7 +201,6 @@ function serializeBlock(slide: pptxgen.Slide, pptx: pptxgen, block: RenderBlock)
   }
 }
 
-
 export class PptxExporter implements Exporter<RenderDocument> {
   readonly id = 'pptx';
   readonly name = 'PPTX Exporter';

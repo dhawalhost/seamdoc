@@ -22,7 +22,6 @@
     "@seamdoc/exporter-pdf": "workspace:^",
     "@seamdoc/exporter-pptx": "workspace:*",
     "@seamdoc/renderer": "workspace:*",
-
     "@seamdoc/shared": "workspace:*",
     "@seamdoc/templates": "workspace:^",
     "@seamdoc/themes": "workspace:*",

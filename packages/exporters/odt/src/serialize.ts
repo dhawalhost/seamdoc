@@ -95,7 +95,6 @@ function serializeBlock(block: RenderBlock): string {
       const exhaustive: never = block;
       throw new Error(`Unhandled ODT block: ${JSON.stringify(exhaustive)}`);
     }
-
   }
 }
 
