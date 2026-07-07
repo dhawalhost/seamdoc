@@ -19,8 +19,10 @@ export const odtExporter: Exporter<RenderDocument> = {
     return format === 'odt';
   },
 
-
-  async export(document: RenderDocument, settings: ExportSettings): Promise<{
+  async export(
+    document: RenderDocument,
+    settings: ExportSettings,
+  ): Promise<{
     data: ArrayBuffer;
     filename: string;
     mimeType: string;

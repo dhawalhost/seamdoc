@@ -128,7 +128,10 @@ export function ExportWizard({ onClose }: ExportWizardProps) {
         <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
           <div className="flex items-center gap-2">
             <FileDown size={20} className="text-blue-600" />
-            <h2 id="export-wizard-title" className="text-lg font-semibold text-neutral-900 dark:text-white">
+            <h2
+              id="export-wizard-title"
+              className="text-lg font-semibold text-neutral-900 dark:text-white"
+            >
               Export Document
             </h2>
           </div>
@@ -206,7 +209,10 @@ export function ExportWizard({ onClose }: ExportWizardProps) {
                 <table className="w-full text-sm">
                   <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
                     {[
-                      ['Format', `${selectedFormatOption.label} (${selectedFormatOption.extension})`],
+                      [
+                        'Format',
+                        `${selectedFormatOption.label} (${selectedFormatOption.extension})`,
+                      ],
                       ['Page size', settings.pageSize ?? 'A4'],
                       ['Orientation', settings.orientation ?? 'portrait'],
                       ['Font', `${settings.fontFamily ?? 'Default'} ${settings.fontSize ?? 12}pt`],
@@ -238,7 +244,9 @@ export function ExportWizard({ onClose }: ExportWizardProps) {
               <p className="mt-4 text-base font-medium text-neutral-700 dark:text-neutral-300">
                 Generating your {selectedFormatOption.label}…
               </p>
-              <p className="mt-1 text-sm text-neutral-400">This may take a moment for large documents.</p>
+              <p className="mt-1 text-sm text-neutral-400">
+                This may take a moment for large documents.
+              </p>
             </div>
           )}
 

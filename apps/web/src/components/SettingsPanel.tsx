@@ -1,28 +1,15 @@
-/** Document settings: page size, orientation, margins, header/footer, page numbers. */
-
 import { X } from 'lucide-react';
-import type { PageOrientation, PageSizeName, TemplateMappableNode } from '@seamdoc/types';
+import type { PageOrientation, PageSizeName } from '@seamdoc/types';
 import { PAGE_SIZES } from '@seamdoc/shared';
 import { useAppStore } from '../store';
 import { FontFamilySelect } from './FontFamilySelect';
 import { TooltipButton } from './TooltipButton';
+import { BrandPackSelector } from './BrandPackSelector';
+import { StyleMapper } from './StyleMapper';
 
 const fieldClass =
   'w-full rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-white';
 const labelClass = 'block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1';
-
-const MAPPABLE_NODES: readonly { node: TemplateMappableNode; label: string }[] = [
-  { node: 'h1', label: 'Heading 1' },
-  { node: 'h2', label: 'Heading 2' },
-  { node: 'h3', label: 'Heading 3' },
-  { node: 'h4', label: 'Heading 4' },
-  { node: 'h5', label: 'Heading 5' },
-  { node: 'h6', label: 'Heading 6' },
-  { node: 'paragraph', label: 'Paragraph' },
-  { node: 'quote', label: 'Quote' },
-  { node: 'code', label: 'Code block' },
-  { node: 'table', label: 'Table' },
-];
 
 export function SettingsPanel() {
   const {
@@ -31,7 +18,7 @@ export function SettingsPanel() {
     template,
     updateSettings,
     updateMetadata,
-    updateTemplateMapping,
+    // updateTemplateMapping,
     setSettingsOpen,
   } = useAppStore();
 
@@ -134,6 +121,10 @@ export function SettingsPanel() {
           onChange={(event) => updateMetadata({ language: event.target.value })}
         />
       </div>
+
+      <hr className="border-neutral-200 dark:border-neutral-800" />
+      <BrandPackSelector />
+      <hr className="border-neutral-200 dark:border-neutral-800" />
 
       <div>
         <label className={labelClass} htmlFor="page-size">
@@ -292,6 +283,57 @@ export function SettingsPanel() {
         />
       </div>
 
+      <div className="space-y-4 rounded-xl border border-neutral-200 p-3.5 dark:border-neutral-700">
+        <div>
+          <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">PDF Security</h4>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            Set password protection and encrypt your exported PDF document.
+          </p>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="pdf-user-password">
+            User / Open Password
+          </label>
+          <input
+            id="pdf-user-password"
+            type="password"
+            placeholder="No password set"
+            className={fieldClass}
+            value={settings.pdfSecurity?.userPassword ?? ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              updateSettings({
+                pdfSecurity: {
+                  ...settings.pdfSecurity,
+                  userPassword: val === '' ? null : val,
+                },
+              });
+            }}
+          />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="pdf-owner-password">
+            Owner / Edit Password
+          </label>
+          <input
+            id="pdf-owner-password"
+            type="password"
+            placeholder="No owner password"
+            className={fieldClass}
+            value={settings.pdfSecurity?.ownerPassword ?? ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              updateSettings({
+                pdfSecurity: {
+                  ...settings.pdfSecurity,
+                  ownerPassword: val === '' ? null : val,
+                },
+              });
+            }}
+          />
+        </div>
+      </div>
+
       <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
         <input
           type="checkbox"
@@ -303,35 +345,10 @@ export function SettingsPanel() {
       </label>
 
       {template !== null && (
-        <fieldset data-testid="template-mapping">
-          <legend className={labelClass}>Template style mapping — {template.metadata.name}</legend>
-          <div className="flex flex-col gap-2">
-            {MAPPABLE_NODES.map(({ node, label }) => (
-              <label key={node} className="text-xs text-neutral-500 dark:text-neutral-400">
-                {label}
-                <select
-                  className={fieldClass}
-                  data-testid={`mapping-${node}`}
-                  value={template.mapping[node] ?? ''}
-                  onChange={(event) =>
-                    updateTemplateMapping({
-                      [node]: event.target.value === '' ? undefined : event.target.value,
-                    })
-                  }
-                >
-                  <option value="">Theme default</option>
-                  {template.styles
-                    .filter((style) => style.type === (node === 'table' ? 'table' : 'paragraph'))
-                    .map((style) => (
-                      <option key={style.id} value={style.id}>
-                        {style.name}
-                      </option>
-                    ))}
-                </select>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        <>
+          <hr className="border-neutral-200 dark:border-neutral-800" />
+          <StyleMapper />
+        </>
       )}
     </aside>
   );

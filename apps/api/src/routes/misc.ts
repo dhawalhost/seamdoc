@@ -9,11 +9,23 @@ import type { Context } from 'hono';
 import { renderMarkdown } from '@seamdoc/core';
 
 const FORMATS = [
-  { id: 'docx', label: 'Microsoft Word (.docx)', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+  {
+    id: 'docx',
+    label: 'Microsoft Word (.docx)',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  },
   { id: 'pdf', label: 'PDF (.pdf)', mimeType: 'application/pdf' },
   { id: 'html', label: 'HTML (.html)', mimeType: 'text/html' },
-  { id: 'pptx', label: 'PowerPoint (.pptx)', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' },
-  { id: 'odt', label: 'OpenDocument Text (.odt)', mimeType: 'application/vnd.oasis.opendocument.text' },
+  {
+    id: 'pptx',
+    label: 'PowerPoint (.pptx)',
+    mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  },
+  {
+    id: 'odt',
+    label: 'OpenDocument Text (.odt)',
+    mimeType: 'application/vnd.oasis.opendocument.text',
+  },
 ];
 
 export function healthRoute(c: Context): Response {
@@ -37,8 +49,10 @@ export async function renderRoute(c: Context): Promise<Response> {
     return c.json({ error: '`markdown` is required.', code: 'MISSING_MARKDOWN' }, 400);
   }
 
-  const settings = typeof body['settings'] === 'object' && body['settings'] !== null ? body['settings'] : {};
-  const metadataOverride = typeof body['metadata'] === 'object' && body['metadata'] !== null ? body['metadata'] : {};
+  const settings =
+    typeof body['settings'] === 'object' && body['settings'] !== null ? body['settings'] : {};
+  const metadataOverride =
+    typeof body['metadata'] === 'object' && body['metadata'] !== null ? body['metadata'] : {};
   const theme = typeof body['theme'] === 'string' ? body['theme'] : 'minimal';
 
   try {

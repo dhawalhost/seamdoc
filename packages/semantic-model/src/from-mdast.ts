@@ -30,11 +30,58 @@ import type {
   SdmTableRow,
 } from './nodes.js';
 
+let inputCount = 0;
+
+export function resetInputCounter(): void {
+  inputCount = 0;
+}
+
+export function splitTextInputs(text: string): readonly SdmInline[] {
+  const results: SdmInline[] = [];
+  let lastIndex = 0;
+  // Match unchecked checkbox [ ], checked checkbox [x]/[X], or text fields [___] (3 or more underscores)
+  const regex = /\[(?:(\s)|([xX])|(_+))\]/g;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    const matchIndex = match.index;
+    if (matchIndex > lastIndex) {
+      results.push({ type: 'text', value: text.substring(lastIndex, matchIndex) });
+    }
+
+    inputCount++;
+    const name = `input_${inputCount}`;
+
+    if (match[1] !== undefined) {
+      results.push({ type: 'input', inputType: 'checkbox', name, checked: false });
+    } else if (match[2] !== undefined) {
+      results.push({ type: 'input', inputType: 'checkbox', name, checked: true });
+    } else if (match[3] !== undefined) {
+      const underscores = match[3];
+      results.push({
+        type: 'input',
+        inputType: 'text',
+        name,
+        width: underscores.length,
+      });
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    results.push({ type: 'text', value: text.substring(lastIndex) });
+  }
+
+  return results;
+}
+
 export interface FromMdastOptions {
   readonly metadata?: Partial<DocumentMetadata>;
 }
 
 export function fromMdast(root: Root, options: FromMdastOptions = {}): SdmDocument {
+  resetInputCounter();
   return {
     type: 'document',
     version: SDM_VERSION,
@@ -142,44 +189,44 @@ function convertTableRow(node: TableRow): SdmTableRow {
 function convertInlines(nodes: readonly PhrasingContent[]): readonly SdmInline[] {
   const inlines: SdmInline[] = [];
   for (const node of nodes) {
-    const inline = convertInline(node);
-    if (inline !== null) {
-      inlines.push(inline);
-    }
+    inlines.push(...convertInline(node));
   }
   return inlines;
 }
 
-function convertInline(node: PhrasingContent): SdmInline | null {
+function convertInline(node: PhrasingContent): readonly SdmInline[] {
   switch (node.type) {
     case 'text':
-      return { type: 'text', value: node.value };
+      return splitTextInputs(node.value);
     case 'emphasis':
-      return { type: 'emphasis', children: convertInlines(node.children) };
+      return [{ type: 'emphasis', children: convertInlines(node.children) }];
     case 'strong':
-      return { type: 'strong', children: convertInlines(node.children) };
+      return [{ type: 'strong', children: convertInlines(node.children) }];
     case 'inlineCode':
-      return { type: 'inlineCode', value: node.value };
+      return [{ type: 'inlineCode', value: node.value }];
     case 'link':
-      return {
-        type: 'link',
-        url: node.url,
-        title: node.title ?? null,
-        children: convertInlines(node.children),
-      };
+      return [
+        {
+          type: 'link',
+          url: node.url,
+          title: node.title ?? null,
+          children: convertInlines(node.children),
+        },
+      ];
     case 'break':
-      return { type: 'lineBreak' };
+      return [{ type: 'lineBreak' }];
     case 'image':
-      return {
-        type: 'image',
-        src: node.url,
-        alt: node.alt ?? '',
-        title: node.title ?? null,
-      };
+      return [
+        {
+          type: 'image',
+          src: node.url,
+          alt: node.alt ?? '',
+          title: node.title ?? null,
+        },
+      ];
     case 'delete':
-      // Strikethrough carries no SDM node yet; keep the inner content.
-      return node.children.length === 1 ? convertInline(node.children[0]!) : null;
+      return convertInlines(node.children);
     default:
-      return null;
+      return [];
   }
 }

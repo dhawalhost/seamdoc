@@ -29,7 +29,10 @@ describe('compileDocument', () => {
     });
 
     expect(result).toBe(outPath);
-    const exists = await fs.access(outPath).then(() => true).catch(() => false);
+    const exists = await fs
+      .access(outPath)
+      .then(() => true)
+      .catch(() => false);
     expect(exists).toBe(true);
   });
 
@@ -45,7 +48,10 @@ describe('compileDocument', () => {
     });
 
     expect(result).toBe(outPath);
-    const exists = await fs.access(outPath).then(() => true).catch(() => false);
+    const exists = await fs
+      .access(outPath)
+      .then(() => true)
+      .catch(() => false);
     expect(exists).toBe(true);
   });
 
@@ -66,7 +72,10 @@ describe('compileDocument', () => {
     });
 
     expect(result).toBe(outPath);
-    const exists = await fs.access(outPath).then(() => true).catch(() => false);
+    const exists = await fs
+      .access(outPath)
+      .then(() => true)
+      .catch(() => false);
     expect(exists).toBe(true);
   });
 

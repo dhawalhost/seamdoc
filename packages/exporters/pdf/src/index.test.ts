@@ -92,4 +92,27 @@ describe('PdfExporter', () => {
       'no pages',
     );
   });
+
+  it('supports password protection and encryption', async () => {
+    const doc = render('Sensitive content');
+    const secureSettings: ExportSettings = {
+      ...settings,
+      pdfSecurity: {
+        userPassword: 'secret-password',
+      },
+    };
+    const result = await pdfExporter.export(doc, secureSettings);
+    expect(result.data.byteLength).toBeGreaterThan(1000);
+    // Encrypted PDF files should have encrypted/scrambled metadata/body.
+    const text = new TextDecoder('latin1').decode(result.data);
+    expect(text).toContain('/Encrypt');
+  });
+
+  it('draws interactive PDF form elements from markdown inputs', async () => {
+    const doc = render('Please check: [ ] and sign: [________]');
+    const result = await pdfExporter.export(doc, settings);
+    const text = new TextDecoder('latin1').decode(result.data);
+    // Checkboxes and Text fields are added to fields array.
+    expect(text).toContain('/Fields');
+  });
 });

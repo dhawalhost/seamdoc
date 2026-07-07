@@ -22,13 +22,14 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "@pdfsmaller/pdf-encrypt-lite": "^1.0.2",
     "@seamdoc/renderer": "workspace:*",
     "@seamdoc/shared": "workspace:*",
     "@seamdoc/types": "workspace:*",
     "pdf-lib": "^1.17.1"
   },
   "devDependencies": {
-    "@seamdoc/highlighter": "workspace:*",
-    "@seamdoc/core": "workspace:*"
+    "@seamdoc/core": "workspace:*",
+    "@seamdoc/highlighter": "workspace:*"
   }
 }

@@ -19,7 +19,6 @@ const EditorPane = lazy(async () => {
 
 type ScrollSource = 'none' | 'editor' | 'preview';
 
-
 export default function App() {
   const {
     markdown,
@@ -101,9 +100,7 @@ export default function App() {
         const result = await importFile(file);
         setMarkdown(result.markdown);
       } catch (error) {
-        setDragDropError(
-          error instanceof Error ? error.message : 'Failed to import file.',
-        );
+        setDragDropError(error instanceof Error ? error.message : 'Failed to import file.');
       }
     },
     [setDragDropError, setMarkdown],

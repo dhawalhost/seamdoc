@@ -47,8 +47,16 @@ export interface SdmImage {
   readonly title: string | null;
 }
 
+export interface SdmInput {
+  readonly type: 'input';
+  readonly inputType: 'checkbox' | 'text';
+  readonly name: string;
+  readonly checked?: boolean;
+  readonly width?: number;
+}
+
 export type SdmInline =
-  SdmText | SdmEmphasis | SdmStrong | SdmInlineCode | SdmLink | SdmLineBreak | SdmImage;
+  SdmText | SdmEmphasis | SdmStrong | SdmInlineCode | SdmLink | SdmLineBreak | SdmImage | SdmInput;
 
 export interface SdmHeading {
   readonly type: 'heading';

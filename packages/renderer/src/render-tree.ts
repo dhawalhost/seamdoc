@@ -38,6 +38,12 @@ export interface RunStyle {
 export interface TextRun {
   readonly text: string;
   readonly style: RunStyle;
+  readonly input?: {
+    readonly inputType: 'checkbox' | 'text';
+    readonly name: string;
+    readonly checked?: boolean;
+    readonly width?: number;
+  };
 }
 
 interface BaseRenderNode {

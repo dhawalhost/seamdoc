@@ -23,8 +23,6 @@ import type {
 import type { FontRegistry } from './fonts.js';
 import { sanitizeText } from './fonts.js';
 
-
-
 interface Rgb {
   readonly r: number;
   readonly g: number;
@@ -50,6 +48,12 @@ interface LineSegment {
   readonly style: RunStyle;
   readonly font: PDFFont;
   readonly width: number;
+  readonly input?: {
+    readonly inputType: 'checkbox' | 'text';
+    readonly name: string;
+    readonly checked?: boolean;
+    readonly width?: number;
+  };
 }
 
 interface Line {
@@ -75,6 +79,22 @@ async function breakLines(
 
   for (const run of runs) {
     const font = await fonts.fontFor(run.style);
+    if (run.input !== undefined) {
+      const width = font.widthOfTextAtSize(run.text, run.style.fontSize);
+      if (lineWidth + width > maxWidth && lineWidth > 0) {
+        pushLine();
+      }
+      segments.push({
+        text: run.text,
+        style: run.style,
+        font,
+        width,
+        input: run.input,
+      });
+      lineWidth += width;
+      continue;
+    }
+
     // Split while keeping separators so spacing is preserved.
     const words = sanitizeText(run.text)
       .split(/(\s+)/)
@@ -92,6 +112,7 @@ async function breakLines(
       lineWidth += width;
     }
   }
+
   if (segments.length > 0) {
     pushLine();
   }
@@ -228,6 +249,7 @@ export class PageRenderer {
     lineHeight: number,
   ): Promise<number> {
     const lines = await breakLines(runs, width, this.fonts);
+
     let cursorY = topY;
     for (const line of lines) {
       const fontSize = line.segments[0]?.style.fontSize ?? 12;
@@ -235,20 +257,54 @@ export class PageRenderer {
       let cursorX = x + alignmentOffset(alignment, width, line.width);
       const baseline = this.pdfY(cursorY + fontSize);
       for (const segment of line.segments) {
-        this.page.drawText(segment.text, {
-          x: cursorX,
-          y: baseline,
-          size: segment.style.fontSize,
-          font: segment.font,
-          color: toColor(segment.style.color),
-        });
-        if (segment.style.underline || segment.style.link !== '') {
-          this.page.drawLine({
-            start: { x: cursorX, y: baseline - 1.5 },
-            end: { x: cursorX + segment.width, y: baseline - 1.5 },
-            thickness: 0.6,
+        if (segment.input !== undefined) {
+          const input = segment.input;
+          const form = this.page.doc.getForm();
+          const fieldY = baseline;
+          const fieldH = segment.style.fontSize;
+          const fieldW = segment.width;
+
+          try {
+            if (input.inputType === 'checkbox') {
+              const checkBox = form.createCheckBox(input.name);
+              checkBox.addToPage(this.page, {
+                x: cursorX,
+                y: fieldY,
+                width: fieldH, // checkboxes are square
+                height: fieldH,
+              });
+              if (input.checked) {
+                checkBox.check();
+              }
+            } else {
+              const textField = form.createTextField(input.name);
+              textField.addToPage(this.page, {
+                x: cursorX,
+                y: fieldY,
+                width: fieldW,
+                height: fieldH,
+              });
+              textField.setFontSize(segment.style.fontSize);
+            }
+          } catch {
+            // Ignore if field with the same name was already created (e.g. multi-page layout retry)
+          }
+        } else {
+          this.page.drawText(segment.text, {
+            x: cursorX,
+            y: baseline,
+            size: segment.style.fontSize,
+            font: segment.font,
             color: toColor(segment.style.color),
           });
+          if (segment.style.underline || segment.style.link !== '') {
+            this.page.drawLine({
+              start: { x: cursorX, y: baseline - 1.5 },
+              end: { x: cursorX + segment.width, y: baseline - 1.5 },
+              thickness: 0.6,
+              color: toColor(segment.style.color),
+            });
+          }
         }
         cursorX += segment.width;
       }

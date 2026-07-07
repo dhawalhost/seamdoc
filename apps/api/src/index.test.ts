@@ -15,7 +15,7 @@ describe('SeamDoc API', () => {
   it('GET /v1/health returns 200', async () => {
     const res = await app.request('/v1/health', { method: 'GET' });
     expect(res.status).toBe(200);
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body['status']).toBe('ok');
     expect(body['version']).toBe('0.1.0');
   });
@@ -25,7 +25,7 @@ describe('SeamDoc API', () => {
   it('GET /v1/formats lists all supported formats', async () => {
     const res = await app.request('/v1/formats', { method: 'GET' });
     expect(res.status).toBe(200);
-    const body = await res.json() as { formats: Array<{ id: string }> };
+    const body = (await res.json()) as { formats: Array<{ id: string }> };
     const ids = body.formats.map((f) => f.id);
     expect(ids).toContain('docx');
     expect(ids).toContain('pdf');
@@ -43,7 +43,7 @@ describe('SeamDoc API', () => {
       body: JSON.stringify({ markdown: '# Hello\n\nWorld.' }),
     });
     expect(res.status).toBe(200);
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body).toHaveProperty('renderDocument');
     expect(body).toHaveProperty('settings');
   });
@@ -66,7 +66,9 @@ describe('SeamDoc API', () => {
       body: JSON.stringify({ markdown: '# Test\n\nHello world.', format: 'docx' }),
     });
     expect(res.status).toBe(200);
-    expect(res.headers.get('Content-Type')).toContain('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    expect(res.headers.get('Content-Type')).toContain(
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    );
     expect(res.headers.get('Content-Disposition')).toContain('document.docx');
     const buf = await res.arrayBuffer();
     expect(buf.byteLength).toBeGreaterThan(0);
@@ -90,7 +92,7 @@ describe('SeamDoc API', () => {
       body: JSON.stringify({ markdown: '# Test', format: 'xlsx' }),
     });
     expect(res.status).toBe(400);
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body['code']).toBe('UNSUPPORTED_FORMAT');
   });
 
@@ -115,7 +117,7 @@ describe('SeamDoc API', () => {
       body: JSON.stringify({ markdown: '# Test' }),
     });
     expect(res.status).toBe(401);
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     expect(body['code']).toBe('INVALID_API_KEY');
 
     delete process.env['SEAMDOC_API_KEYS'];

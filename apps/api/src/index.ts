@@ -22,12 +22,15 @@ export function createApp(): Hono {
 
   // Global middleware
   app.use('*', logger());
-  app.use('*', cors({
-    origin: process.env['SEAMDOC_ALLOWED_ORIGINS'] ?? '*',
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'x-api-key'],
-    exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'Retry-After'],
-  }));
+  app.use(
+    '*',
+    cors({
+      origin: process.env['SEAMDOC_ALLOWED_ORIGINS'] ?? '*',
+      allowMethods: ['GET', 'POST', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'x-api-key'],
+      exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'Retry-After'],
+    }),
+  );
 
   // Health (no auth needed)
   app.get('/v1/health', healthRoute);
@@ -41,9 +44,7 @@ export function createApp(): Hono {
   app.post('/v1/compile', compileRoute);
 
   // 404 handler
-  app.notFound((c) =>
-    c.json({ error: 'Not found', code: 'NOT_FOUND' }, 404),
-  );
+  app.notFound((c) => c.json({ error: 'Not found', code: 'NOT_FOUND' }, 404));
 
   // Global error handler
   app.onError((err, c) => {
@@ -57,12 +58,14 @@ export function createApp(): Hono {
 // Node.js entry point (run directly with `node dist/index.js`)
 const port = parseInt(process.env['PORT'] ?? '3001', 10);
 
-import('@hono/node-server').then(({ serve }) => {
-  const app = createApp();
-  serve({ fetch: app.fetch, port }, () => {
-    console.log(`[seamdoc-api] Listening on http://localhost:${port}`);
+import('@hono/node-server')
+  .then(({ serve }) => {
+    const app = createApp();
+    serve({ fetch: app.fetch, port }, () => {
+      console.log(`[seamdoc-api] Listening on http://localhost:${port}`);
+    });
+  })
+  .catch((err: unknown) => {
+    console.error('[seamdoc-api] Failed to start server:', err);
+    process.exit(1);
   });
-}).catch((err: unknown) => {
-  console.error('[seamdoc-api] Failed to start server:', err);
-  process.exit(1);
-});

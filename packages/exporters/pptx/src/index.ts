@@ -25,11 +25,7 @@ function mapRunsToPptx(runs: readonly TextRun[]): Record<string, unknown>[] {
   });
 }
 
-function serializeBlock(
-  slide: pptxgen.Slide,
-  pptx: pptxgen,
-  block: RenderBlock,
-): void {
+function serializeBlock(slide: pptxgen.Slide, pptx: pptxgen, block: RenderBlock): void {
   const position = {
     x: ptToIn(block.bounds.x),
     y: ptToIn(block.bounds.y),
@@ -226,7 +222,7 @@ export class PptxExporter implements Exporter<RenderDocument> {
       const firstPage = document.pages[0]!;
       const slideWidthIn = ptToIn(firstPage.width);
       const slideHeightIn = ptToIn(firstPage.height);
-      
+
       // Standard or Custom sizes
       pptx.defineLayout({
         name: 'CUSTOM_LAYOUT',

@@ -4,13 +4,7 @@
  */
 
 import { useRef, useState } from 'react';
-import {
-  Check,
-  Download,
-  Save,
-  WandSparkles,
-  X,
-} from 'lucide-react';
+import { Check, Download, Save, WandSparkles, X } from 'lucide-react';
 import { validateTheme, type Theme, type ThemeAlignment } from '@seamdoc/themes';
 import { DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 import { downloadThemeJson } from '../lib/export';
@@ -191,7 +185,10 @@ export function ThemeCreatorPanel() {
           </span>
         )}
         {status !== '' && (
-          <span data-testid="theme-creator-status" className="text-xs text-green-700 dark:text-green-400">
+          <span
+            data-testid="theme-creator-status"
+            className="text-xs text-green-700 dark:text-green-400"
+          >
             {status}
           </span>
         )}
@@ -512,10 +509,7 @@ export function ThemeCreatorPanel() {
                     updateDraft({
                       ...draft,
                       headings: Object.fromEntries(
-                        HEADING_LEVELS.map((level) => [
-                          level,
-                          { ...draft.headings[level], color },
-                        ]),
+                        HEADING_LEVELS.map((level) => [level, { ...draft.headings[level], color }]),
                       ) as Theme['headings'],
                     });
                   }}

@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { builtinThemes, getBuiltinTheme } from './builtin.js';
-import {
-  DEFAULT_THEME_BRANDING,
-  createThemeDraft,
-  validateTheme,
-} from './schema.js';
+import { DEFAULT_THEME_BRANDING, createThemeDraft, validateTheme } from './schema.js';
 
 describe('built-in themes', () => {
   it('ships core, Google Docs–style, and Microsoft Office–style themes', () => {
