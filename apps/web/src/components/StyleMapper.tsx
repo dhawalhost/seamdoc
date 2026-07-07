@@ -29,7 +29,7 @@ export function StyleMapper() {
   const tableStyles = template.styles.filter((s) => s.type === 'table');
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="template-mapping">
       <div>
         <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">
           Word Style Mapper
@@ -54,6 +54,7 @@ export function StyleMapper() {
               </label>
               <select
                 id={`map-style-${node}`}
+                data-testid={`mapping-${node}`}
                 value={activeStyleId}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -74,6 +75,7 @@ export function StyleMapper() {
         })}
       </div>
     </div>
+
   );
 }
 export default StyleMapper;
