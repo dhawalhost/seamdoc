@@ -23,6 +23,7 @@ const BLOCK_TYPES: ReadonlySet<SdmBlock['type']> = new Set([
   'list',
   'table',
   'columns',
+  'pageBreak',
 ]);
 
 const INLINE_TYPES: ReadonlySet<SdmInline['type']> = new Set([
@@ -97,6 +98,8 @@ function validateBlock(block: SdmBlock, path: string, issues: ValidationIssue[])
       });
       break;
     case 'thematicBreak':
+      break;
+    case 'pageBreak':
       break;
     case 'list':
       block.items.forEach((item, index) => {

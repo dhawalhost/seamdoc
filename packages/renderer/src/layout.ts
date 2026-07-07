@@ -127,6 +127,10 @@ function paginate(blocks: readonly RenderBlock[], ctx: PaginationContext): reado
   };
 
   for (const block of blocks) {
+    if (block.type === 'pageBreak') {
+      flush();
+      continue;
+    }
     const blockHeight = block.bounds.height + spacingOf(block);
     const fits = cursorY + blockHeight <= ctx.settings.margins.top + ctx.contentHeight;
     if (!fits && current.length > 0) {
@@ -304,6 +308,15 @@ function buildBlock(
           thickness: theme.horizontalRule.thickness,
           spacing: theme.horizontalRule.spacing,
           bounds: bounds(width, theme.horizontalRule.thickness),
+        },
+      ];
+    case 'pageBreak':
+      return [
+        {
+          type: 'pageBreak',
+          id: ids.next('pagebreak'),
+          bounds: bounds(width, 0),
+          spacing: { before: 0, after: 0 },
         },
       ];
     case 'list':

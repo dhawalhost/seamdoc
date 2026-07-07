@@ -4,8 +4,11 @@
  */
 
 import { useRef, useState } from 'react';
-import { Check, Download, Save, WandSparkles, X } from 'lucide-react';
+import { Check, Download, Loader2, Save, WandSparkles, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { validateTheme, type Theme, type ThemeAlignment } from '@seamdoc/themes';
+import { generateThemeFromPrompt } from '@seamdoc/core';
+import { FEATURE_FLAGS } from '../lib/features';
 import { DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 import { downloadThemeJson } from '../lib/export';
 import { useAppStore } from '../store';
@@ -51,6 +54,7 @@ function slugify(value: string): string {
 }
 
 export function ThemeCreatorPanel() {
+  const { t } = useTranslation();
   const {
     themeDraft,
     settings,
@@ -59,10 +63,13 @@ export function ThemeCreatorPanel() {
     applyThemeDraft,
     closeThemeCreator,
     updateSettings,
+    geminiApiKey,
   } = useAppStore();
   const logoInput = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
+  const [promptText, setPromptText] = useState('');
+  const [promptLoading, setPromptLoading] = useState(false);
 
   if (themeDraft === null) {
     return null;
@@ -74,6 +81,30 @@ export function ThemeCreatorPanel() {
     setError('');
     setStatus('');
     setThemeDraft(next);
+  };
+
+  const onPromptTheme = async () => {
+    if (!geminiApiKey) {
+      setError('Please configure your Gemini API Key in App Preferences first.');
+      return;
+    }
+    if (!promptText.trim()) {
+      setError('Please enter a description for the theme.');
+      return;
+    }
+    setPromptLoading(true);
+    setError('');
+    setStatus('');
+    try {
+      const generated = await generateThemeFromPrompt(promptText, geminiApiKey);
+      updateDraft(generated);
+      setStatus('Theme generated successfully from prompt!');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg || 'Failed to generate theme.');
+    } finally {
+      setPromptLoading(false);
+    }
   };
 
   const patchMetadata = (partial: Partial<Theme['metadata']>) => {
@@ -173,10 +204,10 @@ export function ThemeCreatorPanel() {
           id="theme-creator-heading"
           className="text-sm font-semibold text-neutral-900 dark:text-white"
         >
-          Theme creator
+          {t('themeCreatorTitle')}
         </h2>
         <span className="text-xs text-neutral-500 dark:text-neutral-400">
-          Design visually, then Save, Apply, or Download JSON
+          {t('designVisually')}
         </span>
         <div className="flex-1" />
         {error !== '' && (
@@ -200,7 +231,7 @@ export function ThemeCreatorPanel() {
           title="Save to your local theme library without applying"
         >
           <Save size={14} />
-          Save
+          {t('save')}
         </button>
         <button
           type="button"
@@ -210,7 +241,7 @@ export function ThemeCreatorPanel() {
           title="Save and apply this theme to the current document"
         >
           <Check size={14} />
-          Apply
+          {t('apply')}
         </button>
         <button
           type="button"
@@ -220,11 +251,11 @@ export function ThemeCreatorPanel() {
           title="Download theme JSON to share or import later"
         >
           <Download size={14} />
-          Download JSON
+          {t('downloadJson')}
         </button>
         <TooltipButton
-          tooltip="Close theme creator"
-          aria-label="Close theme creator"
+          tooltip={t('closeThemeCreator')}
+          aria-label={t('closeThemeCreator')}
           onClick={closeThemeCreator}
           data-testid="theme-creator-close"
           placement="top"
@@ -236,10 +267,53 @@ export function ThemeCreatorPanel() {
 
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <aside className="flex w-full flex-col gap-4 overflow-y-auto border-b border-neutral-200 p-4 md:w-96 md:border-b-0 md:border-r dark:border-neutral-700">
+          {FEATURE_FLAGS.enableAi && (
+            <section className={sectionClass}>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 flex items-center gap-1">
+                <WandSparkles size={12} className="text-yellow-500 fill-yellow-500" />
+                AI Theme Generator
+              </h3>
+              <div>
+                <label className={labelClass} htmlFor="ai-prompt-input">
+                  Prompt your theme (colors, vibes, fonts)
+                </label>
+                <textarea
+                  id="ai-prompt-input"
+                  data-testid="theme-creator-prompt"
+                  placeholder="e.g. Minimalist design for a clinical study with dark forest green headers"
+                  className={fieldClass}
+                  rows={2}
+                  value={promptText}
+                  onChange={(event) => setPromptText(event.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                data-testid="theme-creator-prompt-submit"
+                disabled={promptLoading}
+                onClick={onPromptTheme}
+                className="flex w-full items-center justify-center gap-2 rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-blue-500 disabled:opacity-50"
+              >
+                {promptLoading ? (
+                  <>
+                    <Loader2 size={12} className="animate-spin" />
+                    Generating Theme...
+                  </>
+                ) : (
+                  <>
+                    <WandSparkles size={12} />
+                    Generate Theme
+                  </>
+                )}
+              </button>
+            </section>
+          )}
+
           <section className={sectionClass}>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
               Identity
             </h3>
+
             <div>
               <label className={labelClass} htmlFor="theme-name">
                 Name

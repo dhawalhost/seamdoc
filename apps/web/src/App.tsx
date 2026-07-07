@@ -8,6 +8,7 @@ import { Toolbar } from './components/Toolbar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { AppSettingsPanel } from './components/AppSettingsPanel';
 import { ThemeCreatorPanel } from './components/ThemeCreatorPanel';
+import { CriticPanel } from './components/CriticPanel';
 import { WebFontLoader } from './components/WebFontLoader';
 import { ExportWizard } from './components/ExportWizard';
 import { importFile, isSupportedFile, FORMAT_LABELS } from './lib/importFile';
@@ -30,6 +31,7 @@ export default function App() {
     settingsOpen,
     appSettingsOpen,
     themeCreatorOpen,
+    criticOpen,
     previewZoom,
     printPreview,
     editorFullscreen,
@@ -164,7 +166,9 @@ export default function App() {
             <EditorToolbar
               onFind={() => editorRef.current?.openFind()}
               onReplace={() => editorRef.current?.openReplace()}
+              onInsertPageBreak={() => editorRef.current?.insertText('\n\n<!-- pagebreak -->\n\n')}
             />
+
             <Suspense
               fallback={
                 <div className="flex h-full items-center justify-center text-sm text-neutral-500">
@@ -199,6 +203,7 @@ export default function App() {
         )}
         {settingsOpen && <SettingsPanel />}
         {appSettingsOpen && <AppSettingsPanel />}
+        {criticOpen && <CriticPanel />}
       </main>
       {themeCreatorOpen && <ThemeCreatorPanel />}
       {exportWizardOpen && <ExportWizard onClose={() => setExportWizardOpen(false)} />}

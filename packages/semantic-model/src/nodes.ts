@@ -124,6 +124,10 @@ export interface SdmColumns {
   readonly children: readonly SdmColumn[];
 }
 
+export interface SdmPageBreak {
+  readonly type: 'pageBreak';
+}
+
 export type SdmBlock =
   | SdmHeading
   | SdmParagraph
@@ -132,7 +136,8 @@ export type SdmBlock =
   | SdmThematicBreak
   | SdmList
   | SdmTable
-  | SdmColumns;
+  | SdmColumns
+  | SdmPageBreak;
 
 export interface SdmDocument {
   readonly type: 'document';

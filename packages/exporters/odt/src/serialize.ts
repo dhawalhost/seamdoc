@@ -89,6 +89,8 @@ function serializeBlock(block: RenderBlock): string {
     case 'columns': {
       return block.columns.map((col) => col.children.map(serializeBlock).join('\n')).join('\n');
     }
+    case 'pageBreak':
+      return '';
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled ODT block: ${JSON.stringify(exhaustive)}`);

@@ -2,7 +2,10 @@
 
 import { ExporterRegistry, exportMarkdown } from '@seamdoc/core';
 import { docxExporter } from '@seamdoc/exporter-docx';
+import { htmlExporter } from '@seamdoc/exporter-html';
+import { odtExporter } from '@seamdoc/exporter-odt';
 import { pdfExporter } from '@seamdoc/exporter-pdf';
+import { pptxExporter } from '@seamdoc/exporter-pptx';
 import type {
   DocumentMetadata,
   DocumentSettings,
@@ -13,7 +16,10 @@ import type { Theme } from '@seamdoc/themes';
 
 const registry = new ExporterRegistry();
 registry.register(docxExporter);
+registry.register(htmlExporter);
+registry.register(odtExporter);
 registry.register(pdfExporter);
+registry.register(pptxExporter);
 
 function triggerDownload(data: BlobPart, mimeType: string, filename: string): void {
   const blob = new Blob([data], { type: mimeType });

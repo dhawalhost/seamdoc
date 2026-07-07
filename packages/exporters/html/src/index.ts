@@ -99,6 +99,8 @@ function serializeBlock(block: RenderBlock): string {
         .join('<div style="width: 12pt; display: inline-block;"></div>');
       return `<div style="${spacing} width: 100%; display: block; font-size: 0; box-sizing: border-box;">${colsHtml}</div>`;
     }
+    case 'pageBreak':
+      return '';
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled block: ${JSON.stringify(exhaustive)}`);

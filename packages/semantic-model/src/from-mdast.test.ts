@@ -109,4 +109,12 @@ describe('fromMdast', () => {
       width: 6,
     });
   });
+
+  it('converts HTML pagebreak comments to SdmPageBreak nodes', () => {
+    const doc = toSdm('Before\n\n<!-- pagebreak -->\n\nAfter');
+    expect(doc.children).toHaveLength(3);
+    expect(doc.children[0]?.type).toBe('paragraph');
+    expect(doc.children[1]?.type).toBe('pageBreak');
+    expect(doc.children[2]?.type).toBe('paragraph');
+  });
 });
