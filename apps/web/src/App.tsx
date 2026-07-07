@@ -164,7 +164,9 @@ export default function App() {
             <EditorToolbar
               onFind={() => editorRef.current?.openFind()}
               onReplace={() => editorRef.current?.openReplace()}
+              onInsertPageBreak={() => editorRef.current?.insertText('\n\n<!-- pagebreak -->\n\n')}
             />
+
             <Suspense
               fallback={
                 <div className="flex h-full items-center justify-center text-sm text-neutral-500">

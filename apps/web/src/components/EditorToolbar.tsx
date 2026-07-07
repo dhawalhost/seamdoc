@@ -1,15 +1,16 @@
-/** Editor-local controls: find, replace, fullscreen. */
+/** Editor-local controls: find, replace, fullscreen, pagebreak. */
 
-import { Maximize2, Replace, Search } from 'lucide-react';
+import { Maximize2, Replace, Search, SeparatorHorizontal } from 'lucide-react';
 import { useAppStore } from '../store';
 import { TooltipButton, paneIconClass } from './TooltipButton';
 
 interface EditorToolbarProps {
   onFind: () => void;
   onReplace: () => void;
+  onInsertPageBreak: () => void;
 }
 
-export function EditorToolbar({ onFind, onReplace }: EditorToolbarProps) {
+export function EditorToolbar({ onFind, onReplace, onInsertPageBreak }: EditorToolbarProps) {
   const { editorFullscreen, toggleEditorFullscreen } = useAppStore();
 
   return (
@@ -42,6 +43,16 @@ export function EditorToolbar({ onFind, onReplace }: EditorToolbarProps) {
         <Replace size={16} />
       </TooltipButton>
 
+      <TooltipButton
+        tooltip="Insert a manual page break at the cursor position"
+        aria-label="Insert Page Break"
+        onClick={onInsertPageBreak}
+        data-testid="editor-insert-pagebreak"
+        className={paneIconClass}
+      >
+        <SeparatorHorizontal size={16} />
+      </TooltipButton>
+
       <div className="mx-2 h-4 w-px bg-neutral-300 dark:bg-neutral-600" />
 
       <TooltipButton
@@ -66,3 +77,4 @@ export function EditorToolbar({ onFind, onReplace }: EditorToolbarProps) {
     </div>
   );
 }
+export default EditorToolbar;

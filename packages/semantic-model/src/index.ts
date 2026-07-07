@@ -26,6 +26,7 @@ export type {
   SdmColumn,
   SdmColumns,
   SdmInput,
+  SdmPageBreak,
 } from './nodes.js';
 
 export { cloneDocument } from './clone.js';

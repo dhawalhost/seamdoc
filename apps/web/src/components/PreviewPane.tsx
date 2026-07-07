@@ -256,10 +256,13 @@ function Block({ block }: { block: RenderBlock }): ReactNode {
           ))}
         </div>
       );
+    case 'pageBreak':
+      return null;
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled preview block: ${JSON.stringify(exhaustive)}`);
     }
+
   }
 }
 

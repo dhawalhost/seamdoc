@@ -192,12 +192,15 @@ function serializeBlock(slide: pptxgen.Slide, pptx: pptxgen, block: RenderBlock)
       });
       break;
     }
+    case 'pageBreak':
+      break;
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled block type: ${JSON.stringify(exhaustive)}`);
     }
   }
 }
+
 
 export class PptxExporter implements Exporter<RenderDocument> {
   readonly id = 'pptx';

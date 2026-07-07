@@ -233,12 +233,15 @@ export class PageRenderer {
           }
         }
         return block.bounds.height;
+      case 'pageBreak':
+        return 0;
       default: {
         const exhaustive: never = block;
         throw new Error(`Unhandled render block: ${String(exhaustive)}`);
       }
     }
   }
+
 
   private async drawRuns(
     runs: readonly TextRun[],

@@ -341,9 +341,12 @@ export function serializeBlock(
       return block.columns.flatMap((col) =>
         col.children.flatMap((child) => serializeBlock(child, mapping)),
       );
+    case 'pageBreak':
+      return [];
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled render block: ${JSON.stringify(exhaustive)}`);
     }
   }
 }
+

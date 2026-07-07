@@ -14,7 +14,9 @@ export interface EditorPaneHandle {
   scrollToRatio: (ratio: number) => void;
   openFind: () => void;
   openReplace: () => void;
+  insertText: (text: string) => void;
 }
+
 
 interface EditorPaneProps {
   value: string;
@@ -53,7 +55,32 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(function
     openReplace() {
       editorRef.current?.getAction('editor.action.startFindReplaceAction')?.run();
     },
+    insertText(text: string) {
+      const editor = editorRef.current;
+      if (editor === null) {
+        return;
+      }
+      const selection = editor.getSelection();
+      if (!selection) {
+        return;
+      }
+      const range = new monaco.Range(
+        selection.startLineNumber,
+        selection.startColumn,
+        selection.endLineNumber,
+        selection.endColumn,
+      );
+      editor.executeEdits('seamdoc-insert', [
+        {
+          range,
+          text,
+          forceMoveMarkers: true,
+        },
+      ]);
+      editor.focus();
+    },
   }));
+
 
   return (
     <div className="h-full" data-testid="editor">

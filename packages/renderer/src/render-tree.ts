@@ -152,6 +152,11 @@ export interface RenderColumns extends BaseRenderNode {
   readonly spacing: Spacing;
 }
 
+export interface RenderPageBreak extends BaseRenderNode {
+  readonly type: 'pageBreak';
+  readonly spacing: Spacing;
+}
+
 export type RenderBlock =
   | RenderHeading
   | RenderParagraph
@@ -161,7 +166,8 @@ export type RenderBlock =
   | RenderTable
   | RenderImage
   | RenderRule
-  | RenderColumns;
+  | RenderColumns
+  | RenderPageBreak;
 
 export interface RenderHeaderFooter {
   readonly text: string;

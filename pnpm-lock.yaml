@@ -114,9 +114,18 @@ importers:
       '@seamdoc/exporter-docx':
         specifier: workspace:*
         version: link:../../packages/exporters/docx
+      '@seamdoc/exporter-html':
+        specifier: workspace:*
+        version: link:../../packages/exporters/html
+      '@seamdoc/exporter-odt':
+        specifier: workspace:*
+        version: link:../../packages/exporters/odt
       '@seamdoc/exporter-pdf':
         specifier: workspace:^
         version: link:../../packages/exporters/pdf
+      '@seamdoc/exporter-pptx':
+        specifier: workspace:*
+        version: link:../../packages/exporters/pptx
       '@seamdoc/importers':
         specifier: workspace:*
         version: link:../../packages/importers

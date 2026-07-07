@@ -117,6 +117,14 @@ function convertBlock(node: RootContent): SdmBlock | null {
       return convertList(node);
     case 'table':
       return convertTable(node);
+    case 'html': {
+      const val = (node as { value?: string }).value || '';
+      if (val.trim() === '<!-- pagebreak -->') {
+        return { type: 'pageBreak' };
+      }
+      return null;
+    }
+
     // Unsupported or non-content nodes are dropped; the pipeline degrades
     // gracefully rather than failing (docs/02-architecture/rendering-pipeline.md).
     default:

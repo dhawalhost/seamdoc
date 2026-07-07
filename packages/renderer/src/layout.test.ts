@@ -212,4 +212,14 @@ describe('layoutDocument', () => {
     expect(firstBlock0?.bounds.x).toBe(DEFAULT_DOCUMENT_SETTINGS.margins.left);
     expect(firstBlock1?.bounds.x).toBeGreaterThan(DEFAULT_DOCUMENT_SETTINGS.margins.left);
   });
+
+  it('triggers manual page breaks from pagebreak HTML comments', () => {
+    const tree = layout('Before break\n\n<!-- pagebreak -->\n\nAfter break');
+    expect(tree.pages).toHaveLength(2);
+    expect(tree.pages[0]?.children).toHaveLength(1);
+    expect(tree.pages[0]?.children[0]?.type).toBe('paragraph');
+    expect(tree.pages[1]?.children).toHaveLength(1);
+    expect(tree.pages[1]?.children[0]?.type).toBe('paragraph');
+  });
 });
+
