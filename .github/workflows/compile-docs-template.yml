@@ -1,0 +1,61 @@
+name: Compile Documents Template
+
+on:
+  workflow_dispatch:
+    inputs:
+      docs_dir:
+        description: 'Directory containing source Markdown files'
+        required: true
+        default: 'examples'
+      theme:
+        description: 'Theme ID or path to JSON theme'
+        required: false
+        default: 'minimal'
+      format:
+        description: 'Output format (docx or pdf)'
+        required: true
+        default: 'pdf'
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace modules
+        run: pnpm build
+
+      - name: Compile markdown documents via Seamdoc CLI
+        run: |
+          DOCS_DIR="${{ github.event.inputs.docs_dir }}"
+          THEME="${{ github.event.inputs.theme }}"
+          FORMAT="${{ github.event.inputs.format }}"
+          
+          echo "Compiling documents in directory: $DOCS_DIR using theme: $THEME to format: $FORMAT"
+          
+          # Find all markdown files in the specified directory and compile them
+          find "$DOCS_DIR" -name "*.md" -type f | while read -r file; do
+            echo "Processing: $file"
+            node packages/cli/dist/bin/seamdoc.js compile "$file" --theme "$THEME" --format "$FORMAT"
+          done
+
+      - name: Upload compiled documents
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-documents
+          path: |
+            ${{ github.event.inputs.docs_dir }}/**/*.docx
+            ${{ github.event.inputs.docs_dir }}/**/*.pdf

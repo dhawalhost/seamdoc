@@ -228,6 +228,34 @@ function Block({ block }: { block: RenderBlock }): ReactNode {
           }}
         />
       );
+    case 'columns':
+      return (
+        <div
+          data-preview="columns"
+          style={{
+            ...spacing,
+            width: '100%',
+            display: 'flex',
+            gap: '12pt',
+            boxSizing: 'border-box',
+          }}
+        >
+          {block.columns.map((col, idx) => (
+            <div
+              key={col.id || idx}
+              style={{
+                width: `${col.width}pt`,
+                flexGrow: 0,
+                flexShrink: 0,
+              }}
+            >
+              {col.children.map((child) => (
+                <Block key={child.id} block={child} />
+              ))}
+            </div>
+          ))}
+        </div>
+      );
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled preview block: ${JSON.stringify(exhaustive)}`);

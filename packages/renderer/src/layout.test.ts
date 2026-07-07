@@ -10,7 +10,9 @@ import type {
   RenderList,
   RenderParagraph,
   RenderTable,
+  RenderColumns,
 } from './render-tree.js';
+
 
 function layout(markdown: string, settings = DEFAULT_DOCUMENT_SETTINGS) {
   const document = fromMdast(parseMarkdown(markdown));
@@ -119,4 +121,97 @@ describe('layoutDocument', () => {
     const markdown = '# Doc\n\nBody with **bold**.\n\n- item\n';
     expect(layout(markdown)).toEqual(layout(markdown));
   });
+
+  it('honors custom page sizes', () => {
+    const tree = layoutDocument({
+      document: fromMdast(parseMarkdown('text')),
+      theme: minimalTheme,
+      settings: {
+        ...DEFAULT_DOCUMENT_SETTINGS,
+        customPageSize: { width: 500, height: 600 },
+      },
+    });
+    const page = tree.pages[0]!;
+    expect(page.width).toBe(500);
+    expect(page.height).toBe(600);
+  });
+
+  it('binds page borders to page children', () => {
+    const border = { color: '#00FF00', width: 2, style: 'dashed' as const };
+    const tree = layoutDocument({
+      document: fromMdast(parseMarkdown('text')),
+      theme: minimalTheme,
+      settings: {
+        ...DEFAULT_DOCUMENT_SETTINGS,
+        pageBorder: border,
+      },
+    });
+    const page = tree.pages[0]!;
+    expect(page.border).toEqual(border);
+  });
+
+  it('positions columns side-by-side', () => {
+    const columnsDoc = {
+      type: 'document' as const,
+      version: 1,
+      metadata: {
+        title: '',
+        author: '',
+        description: '',
+        keywords: [],
+        language: 'en',
+        createdAt: '',
+        updatedAt: '',
+      },
+      children: [
+        {
+          type: 'columns' as const,
+          children: [
+            {
+              type: 'column' as const,
+              children: [
+                {
+                  type: 'paragraph' as const,
+                  children: [{ type: 'text' as const, value: 'Left Column' }],
+                },
+              ],
+            },
+            {
+              type: 'column' as const,
+              children: [
+                {
+                  type: 'paragraph' as const,
+                  children: [{ type: 'text' as const, value: 'Right Column' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const tree = layoutDocument({
+      document: columnsDoc,
+      theme: minimalTheme,
+      settings: DEFAULT_DOCUMENT_SETTINGS,
+    });
+
+    const columnsBlock = tree.pages[0]?.children[0];
+    expect(columnsBlock?.type).toBe('columns');
+
+    const cols = (columnsBlock as RenderColumns).columns;
+
+    expect(cols).toHaveLength(2);
+    const col0 = cols[0];
+    const col1 = cols[1];
+    expect(col0).toBeDefined();
+    expect(col1).toBeDefined();
+    const firstBlock0 = col0?.children[0];
+    const firstBlock1 = col1?.children[0];
+    expect(firstBlock0).toBeDefined();
+    expect(firstBlock1).toBeDefined();
+    expect(firstBlock0?.bounds.x).toBe(DEFAULT_DOCUMENT_SETTINGS.margins.left);
+    expect(firstBlock1?.bounds.x).toBeGreaterThan(DEFAULT_DOCUMENT_SETTINGS.margins.left);
+  });
 });
+

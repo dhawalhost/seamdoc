@@ -45,6 +45,14 @@ export interface DocumentSettings {
   readonly lineSpacing: number | null;
   /** Space after paragraphs in points; null uses the theme value. */
   readonly paragraphSpacing: number | null;
+  readonly customPageSize?: PageDimensions | null;
+  readonly pageBorder?: PageBorder | null;
+}
+
+export interface PageBorder {
+  readonly color: string;
+  readonly width: number;
+  readonly style: 'solid' | 'dashed' | 'double' | 'none';
 }
 
 export interface DocumentMetadata {
@@ -59,7 +67,7 @@ export interface DocumentMetadata {
   readonly updatedAt: string;
 }
 
-export type ExportFormat = 'docx' | 'pdf' | 'html' | 'odt' | 'epub';
+export type ExportFormat = 'docx' | 'pdf' | 'html' | 'pptx' | 'odt' | 'epub';
 
 /** Semantic slots a template can map to native document styles. */
 export type TemplateMappableNode =

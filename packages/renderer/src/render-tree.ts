@@ -6,7 +6,7 @@
  * structure exporters consume.
  */
 
-import type { DocumentMetadata, PageMargins } from '@seamdoc/types';
+import type { DocumentMetadata, PageMargins, PageBorder } from '@seamdoc/types';
 
 export interface Bounds {
   readonly x: number;
@@ -134,6 +134,18 @@ export interface RenderRule extends BaseRenderNode {
   readonly spacing: Spacing;
 }
 
+export interface RenderColumn {
+  readonly id: string;
+  readonly children: readonly RenderBlock[];
+  readonly width: number;
+}
+
+export interface RenderColumns extends BaseRenderNode {
+  readonly type: 'columns';
+  readonly columns: readonly RenderColumn[];
+  readonly spacing: Spacing;
+}
+
 export type RenderBlock =
   | RenderHeading
   | RenderParagraph
@@ -142,7 +154,8 @@ export type RenderBlock =
   | RenderList
   | RenderTable
   | RenderImage
-  | RenderRule;
+  | RenderRule
+  | RenderColumns;
 
 export interface RenderHeaderFooter {
   readonly text: string;
@@ -155,6 +168,7 @@ export interface RenderPage {
   readonly width: number;
   readonly height: number;
   readonly margins: PageMargins;
+  readonly border: PageBorder | null;
   readonly header: RenderHeaderFooter | null;
   readonly footer: RenderHeaderFooter | null;
   readonly children: readonly RenderBlock[];

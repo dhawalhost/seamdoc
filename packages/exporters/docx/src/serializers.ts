@@ -337,6 +337,10 @@ export function serializeBlock(
       return serializeImage(block);
     case 'rule':
       return serializeRule(block);
+    case 'columns':
+      return block.columns.flatMap((col) =>
+        col.children.flatMap((child) => serializeBlock(child, mapping)),
+      );
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled render block: ${JSON.stringify(exhaustive)}`);

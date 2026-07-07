@@ -5,7 +5,10 @@
  */
 
 import { cloneDocument, validateDocument, type SdmDocument } from '@seamdoc/semantic-model';
+import type { ExportFormat, ExportResult } from '@seamdoc/types';
+import type { RenderDocument } from '@seamdoc/renderer';
 import type {
+  PluginContext,
   PluginRunResult,
   PluginRunWarning,
   PluginValidationResult,
@@ -40,6 +43,15 @@ export function validatePlugin(input: unknown): PluginValidationResult {
   if (plugin.teardown !== undefined && typeof plugin.teardown !== 'function') {
     errors.push('teardown: must be a function when present.');
   }
+  if (plugin.importHook !== undefined && typeof plugin.importHook !== 'function') {
+    errors.push('importHook: must be a function when present.');
+  }
+  if (plugin.exportHook !== undefined && typeof plugin.exportHook !== 'function') {
+    errors.push('exportHook: must be a function when present.');
+  }
+  if (plugin.priority !== undefined && typeof plugin.priority !== 'number') {
+    errors.push('priority: must be a number when present.');
+  }
   return { valid: errors.length === 0, errors };
 }
 
@@ -50,6 +62,13 @@ interface RegisteredPlugin {
 
 export class PluginRegistry {
   private readonly plugins = new Map<string, RegisteredPlugin>();
+
+  /** Returns plugins sorted by priority (highest first), then registration order. */
+  private sortedPlugins(): RegisteredPlugin[] {
+    return [...this.plugins.values()].sort(
+      (a, b) => (b.plugin.priority ?? 0) - (a.plugin.priority ?? 0),
+    );
+  }
 
   /** Validates and registers a plugin; runs its setup hook. */
   register(plugin: SeamdocPlugin): void {
@@ -86,11 +105,51 @@ export class PluginRegistry {
   }
 
   list(): readonly SeamdocPlugin[] {
-    return [...this.plugins.values()].map((entry) => entry.plugin);
+    return this.sortedPlugins().map((entry) => entry.plugin);
   }
 
   /**
-   * Applies every enabled plugin in registration order. A plugin that throws
+   * Runs enabled import hooks in priority order; returns the first non-null result
+   * or null if no hook handles the format.
+   */
+  runImportHooks(raw: string, format: string): SdmDocument | null {
+    for (const entry of this.sortedPlugins()) {
+      if (!entry.enabled || entry.plugin.importHook === undefined) continue;
+      const pluginId = entry.plugin.id;
+      try {
+        const result = entry.plugin.importHook(raw, format, {
+          warn: (message) => console.warn(`[plugin:${pluginId}] ${message}`),
+        });
+        if (result !== null) return result;
+      } catch {
+        // Import hook failures are non-fatal; fall through to next hook.
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Runs enabled export hooks in priority order; returns the first non-null result
+   * or null if no hook handles the format.
+   */
+  runExportHooks(tree: RenderDocument, format: ExportFormat): ExportResult | null {
+    for (const entry of this.sortedPlugins()) {
+      if (!entry.enabled || entry.plugin.exportHook === undefined) continue;
+      const pluginId = entry.plugin.id;
+      try {
+        const result = entry.plugin.exportHook(tree, format, {
+          warn: (message) => console.warn(`[plugin:${pluginId}] ${message}`),
+        });
+        if (result !== null) return result;
+      } catch {
+        // Export hook failures are non-fatal; fall through to next hook.
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Applies every enabled plugin transform in priority order. A plugin that throws
    * or produces an invalid document is disabled and its change discarded;
    * rendering continues with the previous document.
    */
@@ -99,7 +158,7 @@ export class PluginRegistry {
     const disabled: string[] = [];
     let current = document;
 
-    for (const entry of this.plugins.values()) {
+    for (const entry of this.sortedPlugins()) {
       if (!entry.enabled) {
         continue;
       }
@@ -107,9 +166,10 @@ export class PluginRegistry {
       try {
         // Plugins receive a clone so in-place mutation cannot corrupt the
         // working document if the plugin throws or returns invalid output.
-        const next = entry.plugin.transform(cloneDocument(current), {
+        const context: PluginContext = {
           warn: (message) => warnings.push({ pluginId, message }),
-        });
+        };
+        const next = entry.plugin.transform(cloneDocument(current), context);
         const validation = validateDocument(next);
         if (!validation.valid) {
           const details = validation.issues

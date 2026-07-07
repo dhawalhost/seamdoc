@@ -1,0 +1,45 @@
+{
+  "name": "@seamdoc/cli",
+  "version": "0.1.0",
+  "description": "Seamdoc Command Line Interface",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "seamdoc": "./dist/bin/seamdoc.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@seamdoc/core": "workspace:*",
+    "@seamdoc/themes": "workspace:*",
+    "@seamdoc/templates": "workspace:*",
+    "@seamdoc/exporter-docx": "workspace:*",
+    "@seamdoc/exporter-pdf": "workspace:*",
+    "@seamdoc/exporter-html": "workspace:*",
+    "@seamdoc/exporter-pptx": "workspace:*",
+    "@seamdoc/exporter-odt": "workspace:*",
+    "@seamdoc/importers": "workspace:*",
+    "@seamdoc/parser": "workspace:*",
+    "@seamdoc/semantic-model": "workspace:*",
+    "@seamdoc/renderer": "workspace:*",
+    "@seamdoc/types": "workspace:*",
+    "@seamdoc/shared": "workspace:*",
+    "@seamdoc/utils": "workspace:*",
+    "commander": "^12.1.0"
+  }
+}
