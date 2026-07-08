@@ -16,6 +16,7 @@ import { authMiddleware } from './middleware/auth.js';
 import { rateLimitMiddleware } from './middleware/rateLimit.js';
 import { compileRoute } from './routes/compile.js';
 import { healthRoute, formatsRoute, renderRoute } from './routes/misc.js';
+import { workspacesRoute } from './routes/workspaces.js';
 
 export function createApp(): Hono {
   const app = new Hono();
@@ -42,6 +43,7 @@ export function createApp(): Hono {
 
   app.post('/v1/render', renderRoute);
   app.post('/v1/compile', compileRoute);
+  app.route('/v1/workspaces', workspacesRoute);
 
   // 404 handler
   app.notFound((c) => c.json({ error: 'Not found', code: 'NOT_FOUND' }, 404));

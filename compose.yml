@@ -1,0 +1,60 @@
+# SeamDoc Self-Hosted Docker Compose
+# Usage:
+#   cp .env.example .env        # fill in secrets
+#   docker compose up -d
+#
+# Services:
+#   seamdoc-api   — REST API (http://localhost:3001)
+#   seamdoc-web   — Static web app (http://localhost:8080)  [optional; remove if using Vercel/CDN]
+
+name: seamdoc
+
+services:
+  # ─── REST API ─────────────────────────────────────────────────────────────
+  seamdoc-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    image: seamdoc/api:latest
+    container_name: seamdoc-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: '${PORT:-3001}'
+      NODE_ENV: production
+      SEAMDOC_API_KEY: '${SEAMDOC_API_KEY}'
+      SEAMDOC_ALLOWED_ORIGINS: '${SEAMDOC_ALLOWED_ORIGINS:-http://localhost:8080}'
+      SEAMDOC_DB_PATH: '/data/seamdoc.db'
+    ports:
+      - '${PORT:-3001}:${PORT:-3001}'
+    volumes:
+      # Persistent SQLite database and workspace data
+      - seamdoc-data:/data
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:${PORT:-3001}/v1/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ─── Web App (static) ─────────────────────────────────────────────────────
+  seamdoc-web:
+    image: node:22-alpine
+    container_name: seamdoc-web
+    restart: unless-stopped
+    working_dir: /app
+    command: >
+      sh -c "npm install -g serve@14 && serve -s /app/dist -l 8080"
+    environment:
+      VITE_API_BASE: 'http://localhost:${PORT:-3001}'
+    ports:
+      - '8080:8080'
+    depends_on:
+      seamdoc-api:
+        condition: service_healthy
+
+volumes:
+  seamdoc-data:
+    driver: local

@@ -12,6 +12,7 @@ import { CriticPanel } from './components/CriticPanel';
 import { WebFontLoader } from './components/WebFontLoader';
 import { ExportWizard } from './components/ExportWizard';
 import { importFile, isSupportedFile, FORMAT_LABELS } from './lib/importFile';
+import { FEATURE_FLAGS } from './lib/features';
 
 const EditorPane = lazy(async () => {
   const module = await import('./components/EditorPane');
@@ -203,7 +204,7 @@ export default function App() {
         )}
         {settingsOpen && <SettingsPanel />}
         {appSettingsOpen && <AppSettingsPanel />}
-        {criticOpen && <CriticPanel />}
+        {FEATURE_FLAGS.enableAi && criticOpen && <CriticPanel />}
       </main>
       {themeCreatorOpen && <ThemeCreatorPanel />}
       {exportWizardOpen && <ExportWizard onClose={() => setExportWizardOpen(false)} />}

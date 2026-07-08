@@ -1,6 +1,7 @@
 /** Application-level preferences (Module 16 — Application Settings). */
 
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { ExportFormat } from '@seamdoc/types';
 import { FEATURE_FLAGS } from '../lib/features';
 import { builtinThemes } from '@seamdoc/themes';
@@ -12,6 +13,7 @@ const fieldClass =
 const labelClass = 'block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1';
 
 export function AppSettingsPanel() {
+  const { t } = useTranslation();
   const {
     darkMode,
     highContrast,
@@ -38,11 +40,11 @@ export function AppSettingsPanel() {
           id="app-settings-heading"
           className="text-sm font-semibold text-neutral-900 dark:text-white"
         >
-          App preferences
+          {t('appPreferences')}
         </h2>
         <TooltipButton
-          tooltip="Close app preferences"
-          aria-label="Close app preferences"
+          tooltip={t('closeAppPreferences')}
+          aria-label={t('closeAppPreferences')}
           onClick={() => setAppSettingsOpen(false)}
           placement="top"
           className="rounded p-1 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -58,7 +60,7 @@ export function AppSettingsPanel() {
           checked={darkMode}
           onChange={toggleDarkMode}
         />
-        Dark mode
+        {t('darkMode')}
       </label>
 
       <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
@@ -68,12 +70,12 @@ export function AppSettingsPanel() {
           checked={highContrast}
           onChange={toggleHighContrast}
         />
-        High contrast
+        {t('highContrast')}
       </label>
 
       <div>
         <label className={labelClass} htmlFor="default-theme">
-          Default theme for new documents
+          {t('defaultThemeLabel')}
         </label>
         <select
           id="default-theme"
@@ -89,7 +91,7 @@ export function AppSettingsPanel() {
           ))}
           {customThemes.map((theme) => (
             <option key={theme.metadata.id} value={theme.metadata.id}>
-              {theme.metadata.name} (imported)
+              {theme.metadata.name} {t('themeImported')}
             </option>
           ))}
         </select>
@@ -97,7 +99,7 @@ export function AppSettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="default-export-format">
-          Default export format
+          {t('defaultExportFormat')}
         </label>
         <select
           id="default-export-format"
@@ -114,7 +116,7 @@ export function AppSettingsPanel() {
       {FEATURE_FLAGS.enableAi && (
         <div>
           <label className={labelClass} htmlFor="gemini-api-key">
-            Gemini API Key (AI Layout & Theme)
+            {t('geminiApiKeyLabel')}
           </label>
           <input
             id="gemini-api-key"
@@ -123,14 +125,12 @@ export function AppSettingsPanel() {
             className={fieldClass}
             value={geminiApiKey}
             onChange={(event) => setGeminiApiKey(event.target.value)}
-            placeholder="Enter Gemini API key..."
+            placeholder={t('geminiApiKeyPlaceholder')}
           />
         </div>
       )}
 
-      <p className="text-xs text-neutral-500 dark:text-neutral-400">
-        Preferences are saved locally. New documents use the default theme.
-      </p>
+      <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('preferencesFootnote')}</p>
     </aside>
   );
 }

@@ -422,7 +422,11 @@ export class PageRenderer {
     for (const row of block.rows) {
       let cellX = x;
       for (const [index, cell] of row.cells.entries()) {
-        const cellWidth = (block.columnWidths[index] ?? totalWidth / row.cells.length) * scale;
+        const customWidth =
+          index >= 0 && index < block.columnWidths.length
+            ? block.columnWidths.at(index)
+            : undefined;
+        const cellWidth = (customWidth ?? totalWidth / row.cells.length) * scale;
         if (cell.background !== '') {
           this.page.drawRectangle({
             x: cellX,

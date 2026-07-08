@@ -4,7 +4,7 @@
  */
 
 import { useRef, useState } from 'react';
-import { Check, Download, Loader2, Save, WandSparkles, X } from 'lucide-react';
+import { Check, Dices, Download, Loader2, Save, WandSparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { validateTheme, type Theme, type ThemeAlignment } from '@seamdoc/themes';
 import { generateThemeFromPrompt } from '@seamdoc/core';
@@ -53,6 +53,163 @@ function slugify(value: string): string {
   return slug === '' ? 'custom-theme' : slug;
 }
 
+const TYPOGRAPHY_PAIRS = [
+  { body: 'Inter', heading: 'Inter' },
+  { body: 'Manrope', heading: 'Montserrat' },
+  { body: 'Source Sans 3', heading: 'Source Sans 3' },
+  { body: 'IBM Plex Sans', heading: 'IBM Plex Sans' },
+  { body: 'Source Serif 4', heading: 'Source Sans 3' },
+  { body: 'EB Garamond', heading: 'Playfair Display' },
+  { body: 'Open Sans', heading: 'Inter' },
+  { body: 'Lato', heading: 'Poppins' },
+  { body: 'Nunito Sans', heading: 'Nunito' },
+  { body: 'Karla', heading: 'Montserrat' },
+  { body: 'Lora', heading: 'Playfair Display' },
+  { body: 'DM Sans', heading: 'Outfit' },
+  { body: 'Lora', heading: 'Libre Baskerville' },
+  { body: 'Merriweather', heading: 'Source Serif 4' },
+  { body: 'Segoe UI', heading: 'Segoe UI' },
+];
+
+const COLOR_STORIES = [
+  {
+    primary: '#2563eb',
+    text: '#1f2933',
+    accent: '#94a3b8',
+    border: '#d9dde3',
+    codeBackground: '#f4f5f7',
+  },
+  {
+    primary: '#7c3aed',
+    text: '#111827',
+    accent: '#7c3aed',
+    border: '#e5e7eb',
+    codeBackground: '#f5f3ff',
+  },
+  {
+    primary: '#0f766e',
+    text: '#111827',
+    accent: '#0f766e',
+    border: '#9ca3af',
+    codeBackground: '#f3f4f6',
+  },
+  {
+    primary: '#1d4ed8',
+    text: '#1f2933',
+    accent: '#1d4ed8',
+    border: '#cbd5e1',
+    codeBackground: '#f1f5f9',
+  },
+  {
+    primary: '#9d174d',
+    text: '#292524',
+    accent: '#9d174d',
+    border: '#d6d3d1',
+    codeBackground: '#faf7f5',
+  },
+  {
+    primary: '#0284c7',
+    text: '#1e293b',
+    accent: '#0284c7',
+    border: '#cbd5e1',
+    codeBackground: '#f0f9ff',
+  },
+  {
+    primary: '#e85d4c',
+    text: '#3f2a28',
+    accent: '#f4a261',
+    border: '#f0d6d0',
+    codeBackground: '#fff5f3',
+  },
+  {
+    primary: '#0d9488',
+    text: '#134e4a',
+    accent: '#5eead4',
+    border: '#ccfbf1',
+    codeBackground: '#f0fdfa',
+  },
+  {
+    primary: '#0e7490',
+    text: '#164e63',
+    accent: '#22d3ee',
+    border: '#a5f3fc',
+    codeBackground: '#ecfeff',
+  },
+  {
+    primary: '#7e22ce',
+    text: '#3b0764',
+    accent: '#c084fc',
+    border: '#e9d5ff',
+    codeBackground: '#faf5ff',
+  },
+  {
+    primary: '#4f46e5',
+    text: '#1e1b4b',
+    accent: '#818cf8',
+    border: '#c7d2fe',
+    codeBackground: '#eef2ff',
+  },
+  {
+    primary: '#57534e',
+    text: '#292524',
+    accent: '#a8a29e',
+    border: '#e7e5e4',
+    codeBackground: '#fafaf9',
+  },
+  {
+    primary: '#166534',
+    text: '#14532d',
+    accent: '#4ade80',
+    border: '#bbf7d0',
+    codeBackground: '#f0fdfa',
+  },
+  {
+    primary: '#b91c1c',
+    text: '#1f2937',
+    accent: '#f87171',
+    border: '#fecaca',
+    codeBackground: '#fef2f2',
+  },
+];
+
+const THEME_NAME_ADJECTIVES = [
+  'Vintage',
+  'Cosmic',
+  'Spearmint',
+  'Sunset',
+  'Forest',
+  'Oceanic',
+  'Slate',
+  'Minimalist',
+  'Nordic',
+  'Elegant',
+  'Midnight',
+  'Academic',
+  'Geometric',
+  'Warm',
+  'Royal',
+  'Corporate',
+];
+
+const THEME_NAME_NOUNS = [
+  'Breeze',
+  'Sage',
+  'Stardust',
+  'Velvet',
+  'Splash',
+  'Deep',
+  'Paper',
+  'Focus',
+  'Aesthetic',
+  'Journal',
+  'Deck',
+  'Facet',
+  'Slice',
+  'Outline',
+  'Standard',
+  'Brief',
+];
+
 export function ThemeCreatorPanel() {
   const { t } = useTranslation();
   const {
@@ -81,6 +238,163 @@ export function ThemeCreatorPanel() {
     setError('');
     setStatus('');
     setThemeDraft(next);
+  };
+
+  const onGenerateRandomTheme = () => {
+    const adj =
+      THEME_NAME_ADJECTIVES[Math.floor(Math.random() * THEME_NAME_ADJECTIVES.length)] ?? 'Custom';
+    const noun = THEME_NAME_NOUNS[Math.floor(Math.random() * THEME_NAME_NOUNS.length)] ?? 'Style';
+    const randomName = `${adj} ${noun}`;
+    const randomId = `${slugify(randomName)}-custom-${Math.floor(100 + Math.random() * 900)}`;
+
+    const typo = TYPOGRAPHY_PAIRS[Math.floor(Math.random() * TYPOGRAPHY_PAIRS.length)] ?? {
+      body: 'Inter',
+      heading: 'Inter',
+    };
+    const colors = COLOR_STORIES[Math.floor(Math.random() * COLOR_STORIES.length)] ?? {
+      primary: '#2563eb',
+      text: '#1f2933',
+      accent: '#94a3b8',
+      border: '#d9dde3',
+      codeBackground: '#f4f5f7',
+    };
+
+    const bodySize = Math.floor(10 + Math.random() * 3);
+    const lh = parseFloat((1.2 + Math.random() * 0.45).toFixed(2));
+    const h1Size = Math.round(bodySize * (2.0 + Math.random() * 0.6));
+    const h2Size = Math.round(h1Size * 0.8);
+    const h3Size = Math.round(h1Size * 0.65);
+    const h4Size = Math.round(h1Size * 0.55);
+    const h5Size = Math.round(h1Size * 0.48);
+    const h6Size = Math.round(h1Size * 0.43);
+
+    const randomTheme: Theme = {
+      schemaVersion: 1,
+      metadata: {
+        id: randomId,
+        name: randomName,
+        version: '1.0.0',
+        author: 'Seamdoc Randomizer',
+        description: `Completely random theme combination using ${typo.heading} and ${typo.body}.`,
+        license: 'MIT',
+      },
+      typography: {
+        body: typo.body,
+        heading: typo.heading,
+        code: 'Courier New',
+      },
+      colors: {
+        primary: colors.primary,
+        text: colors.text,
+        background: '#ffffff',
+        border: colors.border,
+        accent: colors.accent,
+        codeBackground: colors.codeBackground,
+      },
+      headings: {
+        h1: {
+          fontFamily: typo.heading,
+          fontSize: h1Size,
+          fontWeight: 700,
+          italic: false,
+          color: colors.primary,
+          alignment: 'left',
+          spacing: { before: Math.round(h1Size * 0.9), after: Math.round(h1Size * 0.45) },
+        },
+        h2: {
+          fontFamily: typo.heading,
+          fontSize: h2Size,
+          fontWeight: 700,
+          italic: false,
+          color: colors.primary,
+          alignment: 'left',
+          spacing: { before: Math.round(h2Size * 0.9), after: Math.round(h2Size * 0.45) },
+        },
+        h3: {
+          fontFamily: typo.heading,
+          fontSize: h3Size,
+          fontWeight: 600,
+          italic: false,
+          color: colors.primary,
+          alignment: 'left',
+          spacing: { before: Math.round(h3Size * 0.9), after: Math.round(h3Size * 0.45) },
+        },
+        h4: {
+          fontFamily: typo.heading,
+          fontSize: h4Size,
+          fontWeight: 600,
+          italic: false,
+          color: colors.primary,
+          alignment: 'left',
+          spacing: { before: Math.round(h4Size * 0.9), after: Math.round(h4Size * 0.45) },
+        },
+        h5: {
+          fontFamily: typo.heading,
+          fontSize: h5Size,
+          fontWeight: 600,
+          italic: false,
+          color: colors.primary,
+          alignment: 'left',
+          spacing: { before: Math.round(h5Size * 0.9), after: Math.round(h5Size * 0.45) },
+        },
+        h6: {
+          fontFamily: typo.heading,
+          fontSize: h6Size,
+          fontWeight: 600,
+          italic: false,
+          color: colors.primary,
+          alignment: 'left',
+          spacing: { before: Math.round(h6Size * 0.9), after: Math.round(h6Size * 0.45) },
+        },
+      },
+      paragraph: {
+        fontFamily: typo.body,
+        fontSize: bodySize,
+        fontWeight: 400,
+        italic: false,
+        color: colors.text,
+        alignment: 'left',
+        lineHeight: lh,
+        spacing: { before: 0, after: Math.round(bodySize * 0.75) },
+      },
+      list: { indent: 24, spacing: { before: 2, after: 2 } },
+      table: {
+        headerBackground: colors.codeBackground,
+        headerColor: colors.primary,
+        headerFontWeight: 700,
+        borderColor: colors.border,
+        borderWidth: 0.75,
+        cellPadding: 5,
+      },
+      image: { alignment: 'center', maxWidth: 451, spacing: { before: 8, after: 8 } },
+      code: {
+        fontFamily: 'Courier New',
+        fontSize: Math.round(bodySize * 0.9),
+        color: colors.text,
+        background: colors.codeBackground,
+        padding: 8,
+        spacing: { before: 8, after: 8 },
+      },
+      quote: {
+        borderColor: colors.accent,
+        borderWidth: 3,
+        color: colors.text,
+        italic: true,
+        indent: 18,
+        spacing: { before: 8, after: 8 },
+      },
+      link: { color: colors.primary, underline: true },
+      horizontalRule: { color: colors.border, thickness: 1, spacing: { before: 12, after: 12 } },
+      branding: {
+        logo: '',
+        headerBackground: colors.codeBackground,
+        headerTextColor: colors.primary,
+        showLogo: false,
+      },
+    };
+
+    updateDraft(randomTheme);
+    setStatus(t('randomThemeSuccess'));
   };
 
   const onPromptTheme = async () => {
@@ -308,6 +622,25 @@ export function ThemeCreatorPanel() {
               </button>
             </section>
           )}
+
+          <section className={sectionClass}>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 flex items-center gap-1">
+              <Dices size={12} className="text-blue-600 dark:text-blue-400" />
+              {t('themeRandomizerTitle')}
+            </h3>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t('randomThemeLabel')}
+            </p>
+            <button
+              type="button"
+              data-testid="theme-creator-randomize"
+              onClick={onGenerateRandomTheme}
+              className="flex w-full items-center justify-center gap-2 rounded bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-800 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+            >
+              <Dices size={12} />
+              {t('randomThemeButton')}
+            </button>
+          </section>
 
           <section className={sectionClass}>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">

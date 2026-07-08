@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { PageOrientation, PageSizeName } from '@seamdoc/types';
 import { PAGE_SIZES } from '@seamdoc/shared';
 import { useAppStore } from '../store';
@@ -12,6 +13,7 @@ const fieldClass =
 const labelClass = 'block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1';
 
 export function SettingsPanel() {
+  const { t } = useTranslation();
   const {
     settings,
     metadata,
@@ -36,11 +38,11 @@ export function SettingsPanel() {
     >
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-          Document settings
+          {t('documentSettings')}
         </h2>
         <TooltipButton
-          tooltip="Close document settings"
-          aria-label="Close settings"
+          tooltip={t('closeSettings')}
+          aria-label={t('closeSettings')}
           onClick={() => setSettingsOpen(false)}
           placement="top"
           className="rounded p-1 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -51,7 +53,7 @@ export function SettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="doc-title">
-          Document title
+          {t('documentTitle')}
         </label>
         <input
           id="doc-title"
@@ -64,7 +66,7 @@ export function SettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="doc-author">
-          Author
+          {t('author')}
         </label>
         <input
           id="doc-author"
@@ -77,7 +79,7 @@ export function SettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="doc-description">
-          Description
+          {t('description')}
         </label>
         <textarea
           id="doc-description"
@@ -91,7 +93,7 @@ export function SettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="doc-keywords">
-          Keywords (comma-separated)
+          {t('keywordsLabel')}
         </label>
         <input
           id="doc-keywords"
@@ -111,7 +113,7 @@ export function SettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="doc-language">
-          Language
+          {t('language')}
         </label>
         <input
           id="doc-language"
@@ -128,7 +130,7 @@ export function SettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="page-size">
-          Page size
+          {t('pageSize')}
         </label>
         <select
           id="page-size"
@@ -147,7 +149,7 @@ export function SettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="orientation">
-          Orientation
+          {t('orientation')}
         </label>
         <select
           id="orientation"
@@ -158,13 +160,13 @@ export function SettingsPanel() {
             updateSettings({ orientation: event.target.value as PageOrientation })
           }
         >
-          <option value="portrait">Portrait</option>
-          <option value="landscape">Landscape</option>
+          <option value="portrait">{t('portrait')}</option>
+          <option value="landscape">{t('landscape')}</option>
         </select>
       </div>
 
       <fieldset>
-        <legend className={labelClass}>Margins (pt)</legend>
+        <legend className={labelClass}>{t('marginsLegend')}</legend>
         <div className="grid grid-cols-2 gap-2">
           {(['top', 'right', 'bottom', 'left'] as const).map((side) => (
             <label key={side} className="text-xs text-neutral-500 dark:text-neutral-400">
@@ -184,13 +186,13 @@ export function SettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="font-family">
-          Body font (blank = theme default)
+          {t('bodyFont')}
         </label>
         <FontFamilySelect
           id="font-family"
           data-testid="font-family"
           className={fieldClass}
-          emptyLabel="Theme default"
+          emptyLabel={t('themeDefault')}
           value={settings.fontFamily ?? ''}
           onChange={(family) => updateSettings({ fontFamily: family === '' ? null : family })}
         />
@@ -199,7 +201,7 @@ export function SettingsPanel() {
       <div className="grid grid-cols-3 gap-2">
         <div>
           <label className={labelClass} htmlFor="font-size">
-            Size (pt)
+            {t('sizeLabel')}
           </label>
           <input
             id="font-size"
@@ -218,7 +220,7 @@ export function SettingsPanel() {
         </div>
         <div>
           <label className={labelClass} htmlFor="line-spacing">
-            Line
+            {t('lineLabel')}
           </label>
           <input
             id="line-spacing"
@@ -238,7 +240,7 @@ export function SettingsPanel() {
         </div>
         <div>
           <label className={labelClass} htmlFor="paragraph-spacing">
-            Para (pt)
+            {t('paraLabel')}
           </label>
           <input
             id="paragraph-spacing"
@@ -259,7 +261,7 @@ export function SettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="header-text">
-          Header text
+          {t('headerText')}
         </label>
         <input
           id="header-text"
@@ -272,7 +274,7 @@ export function SettingsPanel() {
 
       <div>
         <label className={labelClass} htmlFor="footer-text">
-          Footer text
+          {t('footerText')}
         </label>
         <input
           id="footer-text"
@@ -285,19 +287,21 @@ export function SettingsPanel() {
 
       <div className="space-y-4 rounded-xl border border-neutral-200 p-3.5 dark:border-neutral-700">
         <div>
-          <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">PDF Security</h4>
+          <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">
+            {t('pdfSecurityTitle')}
+          </h4>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Set password protection and encrypt your exported PDF document.
+            {t('pdfSecurityDescription')}
           </p>
         </div>
         <div>
           <label className={labelClass} htmlFor="pdf-user-password">
-            User / Open Password
+            {t('userPassword')}
           </label>
           <input
             id="pdf-user-password"
             type="password"
-            placeholder="No password set"
+            placeholder={t('noPasswordSet')}
             className={fieldClass}
             value={settings.pdfSecurity?.userPassword ?? ''}
             onChange={(e) => {
@@ -313,12 +317,12 @@ export function SettingsPanel() {
         </div>
         <div>
           <label className={labelClass} htmlFor="pdf-owner-password">
-            Owner / Edit Password
+            {t('ownerPassword')}
           </label>
           <input
             id="pdf-owner-password"
             type="password"
-            placeholder="No owner password"
+            placeholder={t('noOwnerPassword')}
             className={fieldClass}
             value={settings.pdfSecurity?.ownerPassword ?? ''}
             onChange={(e) => {
@@ -341,7 +345,7 @@ export function SettingsPanel() {
           checked={settings.pageNumbers}
           onChange={(event) => updateSettings({ pageNumbers: event.target.checked })}
         />
-        Page numbers
+        {t('pageNumbers')}
       </label>
 
       {template !== null && (

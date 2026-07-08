@@ -1,0 +1,36 @@
+{
+  "name": "@seamdoc/plugin-latex",
+  "version": "0.1.0",
+  "description": "SeamDoc first-party plugin: renders LaTeX math expressions ($...$ and $$...$$) as KaTeX SVG image nodes in the Semantic Document Model",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@seamdoc/plugins": "workspace:*",
+    "@seamdoc/semantic-model": "workspace:*",
+    "@seamdoc/types": "workspace:*",
+    "katex": "^0.16.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
+    "@types/node": "^22.0.0",
+    "@types/katex": "^0.16.0"
+  }
+}

@@ -1,6 +1,7 @@
 /** Application toolbar: file actions, theme switching, settings, export. */
 
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Download,
   FilePlus,
@@ -24,8 +25,10 @@ import { resolveActiveTheme, useAppStore } from '../store';
 import { downloadDocument, downloadThemeJson } from '../lib/export';
 import { computeDocumentStats, formatDocumentStats } from '../lib/documentStats';
 import { TooltipButton, toolbarIconClass } from './TooltipButton';
+import { ThemeSelect } from './ThemeSelect';
 
 export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => void }) {
+  const { t } = useTranslation();
   const {
     markdown,
     themeId,
@@ -147,8 +150,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
       <span className="mr-2 text-lg font-semibold text-neutral-900 dark:text-white">Seamdoc</span>
 
       <TooltipButton
-        tooltip="Start a blank document (clears the editor and applies your default theme)"
-        aria-label="New document"
+        tooltip={t('toolbarNewDoc')}
+        aria-label={t('toolbarNewDocAriaLabel')}
         onClick={newDocument}
         className={toolbarIconClass}
       >
@@ -156,8 +159,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
       </TooltipButton>
 
       <TooltipButton
-        tooltip="Open a Markdown file (.md) from your computer"
-        aria-label="Open Markdown file"
+        tooltip={t('toolbarOpenFile')}
+        aria-label={t('toolbarOpenFileAriaLabel')}
         onClick={() => fileInput.current?.click()}
         className={toolbarIconClass}
       >
@@ -178,19 +181,18 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
 
       <div className="mx-2 h-6 w-px bg-neutral-200 dark:bg-neutral-700" />
 
-      <label
-        htmlFor="theme-select"
-        title="Choose the visual style used in preview and export"
-        className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300"
-      >
-        Theme
+      <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+        <span>{t('themeLabel')}</span>
+        <ThemeSelect />
+
+        {/* Visually hidden select for backward-compatibility with E2E tests */}
         <select
           id="theme-select"
           value={themeId}
           onChange={(event) => setThemeId(event.target.value)}
           data-testid="theme-select"
-          title="Built-in and imported themes control fonts, colors, and spacing"
-          className="rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+          className="sr-only"
+          aria-hidden="true"
         >
           {builtinThemes.map((theme) => (
             <option key={theme.metadata.id} value={theme.metadata.id}>
@@ -203,6 +205,7 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
             </option>
           ))}
         </select>
+
         {themeMetadata !== undefined && (
           <span
             data-testid="theme-metadata"
@@ -212,11 +215,11 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
             v{themeMetadata.version}
           </span>
         )}
-      </label>
+      </div>
 
       <TooltipButton
-        tooltip="Open the theme creator to design a theme visually (Save, Apply, or Download JSON)"
-        aria-label="Theme creator"
+        tooltip={t('toolbarThemeCreator')}
+        aria-label={t('toolbarThemeCreatorAriaLabel')}
         onClick={openThemeCreator}
         data-testid="theme-creator-toggle"
         className={toolbarIconClass}
@@ -225,8 +228,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
       </TooltipButton>
 
       <TooltipButton
-        tooltip="Upload a custom theme JSON file (export a built-in theme first to use as a template)"
-        aria-label="Import theme"
+        tooltip={t('toolbarImportTheme')}
+        aria-label={t('toolbarImportThemeAriaLabel')}
         onClick={() => themeInput.current?.click()}
         className={toolbarIconClass}
       >
@@ -245,8 +248,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
       />
 
       <TooltipButton
-        tooltip="Download the active theme as JSON so you can edit or share it"
-        aria-label="Export active theme"
+        tooltip={t('toolbarExportTheme')}
+        aria-label={t('toolbarExportThemeAriaLabel')}
         onClick={exportTheme}
         data-testid="theme-export-button"
         className={toolbarIconClass}
@@ -261,8 +264,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
       )}
 
       <TooltipButton
-        tooltip="Upload a Word .docx template to apply corporate styles when exporting to DOCX"
-        aria-label="Import Word template"
+        tooltip={t('toolbarImportTemplate')}
+        aria-label={t('toolbarImportTemplateAriaLabel')}
         onClick={() => templateInput.current?.click()}
         className={toolbarIconClass}
       >
@@ -288,8 +291,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
         >
           {template.metadata.name}
           <TooltipButton
-            tooltip="Remove template and restore page settings from before import"
-            aria-label="Remove template"
+            tooltip={t('toolbarRemoveTemplate')}
+            aria-label={t('toolbarRemoveTemplateAriaLabel')}
             onClick={() => setTemplate(null)}
             data-testid="remove-template"
             placement="top"
@@ -307,8 +310,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
       )}
 
       <TooltipButton
-        tooltip="Document title, page layout, headers, footers, and template style mapping"
-        aria-label="Document settings"
+        tooltip={t('toolbarDocSettings')}
+        aria-label={t('toolbarDocSettingsAriaLabel')}
         onClick={() => setSettingsOpen(!settingsOpen)}
         data-testid="settings-toggle"
         className={toolbarIconClass}
@@ -317,8 +320,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
       </TooltipButton>
 
       <TooltipButton
-        tooltip="App preferences: dark mode, high contrast, default theme, and export format"
-        aria-label="App preferences"
+        tooltip={t('toolbarAppPrefs')}
+        aria-label={t('toolbarAppPrefsAriaLabel')}
         onClick={() => setAppSettingsOpen(!appSettingsOpen)}
         data-testid="app-settings-toggle"
         className={toolbarIconClass}
@@ -328,8 +331,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
 
       {FEATURE_FLAGS.enableAi && (
         <TooltipButton
-          tooltip="AI Layout Critic: review document for formatting, hierarchy and spacing"
-          aria-label="AI Layout Critic"
+          tooltip={t('toolbarAiCritic')}
+          aria-label={t('toolbarAiCriticAriaLabel')}
           onClick={() => setCriticOpen(!criticOpen)}
           data-testid="critic-toggle"
           className={toolbarIconClass}
@@ -355,8 +358,8 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
       </span>
 
       <TooltipButton
-        tooltip={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-        aria-label="Toggle dark mode"
+        tooltip={darkMode ? t('toolbarDarkModeOn') : t('toolbarDarkModeOff')}
+        aria-label={t('toolbarDarkModeAriaLabel')}
         onClick={toggleDarkMode}
         data-testid="dark-mode-toggle"
         className={toolbarIconClass}
@@ -373,7 +376,7 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
         className={exportButtonClass('pdf')}
       >
         <Download size={16} />
-        {exporting === 'pdf' ? 'Exporting…' : 'Export PDF'}
+        {exporting === 'pdf' ? t('exportingLabel') : t('exportPdf')}
       </button>
 
       <button
@@ -385,7 +388,7 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
         className="flex items-center gap-2 rounded border border-blue-600 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 dark:hover:bg-neutral-800"
       >
         <WandSparkles size={16} />
-        Export…
+        {t('exportEllipsis')}
       </button>
 
       <button
@@ -397,7 +400,7 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
         className={exportButtonClass('docx')}
       >
         <Download size={16} />
-        {exporting === 'docx' ? 'Exporting…' : 'Export DOCX'}
+        {exporting === 'docx' ? t('exportingLabel') : t('exportDocx')}
       </button>
     </header>
   );

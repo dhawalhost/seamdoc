@@ -1,31 +1,29 @@
 import type { MappableNode, StyleMapping } from '@seamdoc/templates';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store';
 
-// Local placeholder for internationalization translation helper
-const t = (key: string): string => key;
-
-function getMappableLabel(node: MappableNode): string {
+function getMappableLabel(node: MappableNode, t: (key: string) => string): string {
   switch (node) {
     case 'h1':
-      return t('Heading 1');
+      return t('heading1');
     case 'h2':
-      return t('Heading 2');
+      return t('heading2');
     case 'h3':
-      return t('Heading 3');
+      return t('heading3');
     case 'h4':
-      return t('Heading 4');
+      return t('heading4');
     case 'h5':
-      return t('Heading 5');
+      return t('heading5');
     case 'h6':
-      return t('Heading 6');
+      return t('heading6');
     case 'paragraph':
-      return t('Body Text');
+      return t('bodyText');
     case 'quote':
-      return t('Block Quote');
+      return t('blockQuote');
     case 'code':
-      return t('Code Block');
+      return t('codeBlock');
     case 'table':
-      return t('Table');
+      return t('table');
     default:
       return '';
   }
@@ -72,6 +70,7 @@ const NODES_LIST: readonly MappableNode[] = [
 ];
 
 export function StyleMapper() {
+  const { t } = useTranslation();
   const { template, updateTemplateMapping } = useAppStore();
 
   if (template === null) {
@@ -89,10 +88,10 @@ export function StyleMapper() {
     <div className="space-y-4" data-testid="template-mapping">
       <div>
         <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">
-          {t('Word Style Mapper')}
+          {t('styleMappingTitle')}
         </h4>
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          {t('Map SeamDoc semantic elements to custom style IDs defined in your template.')}
+          {t('styleMapperDescription')}
         </p>
       </div>
 
@@ -107,7 +106,7 @@ export function StyleMapper() {
                 htmlFor={`map-style-${node}`}
                 className="text-xs font-medium text-neutral-600 dark:text-neutral-400"
               >
-                {getMappableLabel(node)}
+                {getMappableLabel(node, t)}
               </label>
               <select
                 id={`map-style-${node}`}
@@ -120,7 +119,7 @@ export function StyleMapper() {
                 }}
                 className="w-48 rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-xs text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
               >
-                <option value="">{t('Default theme style')}</option>
+                <option value="">{t('themeDefault')}</option>
                 {stylesList.map((style) => (
                   <option key={style.id} value={style.id}>
                     {style.name} ({style.id})
