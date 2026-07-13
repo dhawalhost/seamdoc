@@ -5,6 +5,7 @@
  */
 
 import { PDFDocument } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 import { RENDER_TREE_VERSION } from '@seamdoc/shared';
 import type { RenderDocument } from '@seamdoc/renderer';
 import type { Exporter, ExportFormat, ExportResult, ExportSettings } from '@seamdoc/types';
@@ -42,6 +43,7 @@ export class PdfExporter implements Exporter<RenderDocument> {
     }
 
     const pdf = await PDFDocument.create();
+    pdf.registerFontkit(fontkit);
     pdf.setTitle(settings.metadata.title);
     pdf.setAuthor(settings.metadata.author);
     pdf.setSubject(settings.metadata.description);
@@ -52,7 +54,7 @@ export class PdfExporter implements Exporter<RenderDocument> {
     pdf.setCreationDate(parseDate(settings.metadata.createdAt));
     pdf.setModificationDate(parseDate(settings.metadata.updatedAt));
 
-    const fonts = new FontRegistry(pdf);
+    const fonts = new FontRegistry(pdf, settings.customFonts);
     for (const [index, pageSpec] of document.pages.entries()) {
       const page = pdf.addPage([pageSpec.width, pageSpec.height]);
       await new PageRenderer(page, pageSpec, fonts, index + 1).drawPage();

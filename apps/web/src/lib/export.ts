@@ -2,6 +2,7 @@
 
 import { ExporterRegistry, exportMarkdown } from '@seamdoc/core';
 import { docxExporter } from '@seamdoc/exporter-docx';
+import { epubExporter } from '@seamdoc/exporter-epub';
 import { htmlExporter } from '@seamdoc/exporter-html';
 import { odtExporter } from '@seamdoc/exporter-odt';
 import { pdfExporter } from '@seamdoc/exporter-pdf';
@@ -16,6 +17,7 @@ import type { Theme } from '@seamdoc/themes';
 
 const registry = new ExporterRegistry();
 registry.register(docxExporter);
+registry.register(epubExporter);
 registry.register(htmlExporter);
 registry.register(odtExporter);
 registry.register(pdfExporter);

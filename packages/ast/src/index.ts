@@ -30,4 +30,6 @@ export type {
   TableRow,
   Text,
   ThematicBreak,
+  FootnoteReference,
+  FootnoteDefinition,
 } from 'mdast';

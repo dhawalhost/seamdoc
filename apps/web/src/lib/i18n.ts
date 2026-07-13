@@ -75,6 +75,8 @@ void i18n.use(initReactI18next).init({
         toolbarNewDocAriaLabel: 'New document',
         toolbarOpenFile: 'Open a Markdown file (.md) from your computer',
         toolbarOpenFileAriaLabel: 'Open Markdown file',
+        toolbarImportNotion: 'Import content from Notion block JSON API objects',
+        toolbarImportNotionAriaLabel: 'Import from Notion',
         themeLabel: 'Theme',
         toolbarThemeCreator:
           'Open the theme creator to design a theme visually (Save, Apply, or Download JSON)',

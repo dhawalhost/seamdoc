@@ -11,6 +11,7 @@ import { ThemeCreatorPanel } from './components/ThemeCreatorPanel';
 import { CriticPanel } from './components/CriticPanel';
 import { WebFontLoader } from './components/WebFontLoader';
 import { ExportWizard } from './components/ExportWizard';
+import { NotionImportPanel } from './components/NotionImportPanel';
 import { importFile, isSupportedFile, FORMAT_LABELS } from './lib/importFile';
 import { FEATURE_FLAGS } from './lib/features';
 
@@ -43,6 +44,7 @@ export default function App() {
   } = useAppStore();
   const [dragging, setDragging] = useState(false);
   const [exportWizardOpen, setExportWizardOpen] = useState(false);
+  const [notionImportOpen, setNotionImportOpen] = useState(false);
   const editorRef = useRef<EditorPaneHandle>(null);
   const previewRef = useRef<PreviewPaneHandle>(null);
   const scrollSource = useRef<ScrollSource>('none');
@@ -142,7 +144,10 @@ export default function App() {
       <a href="#main-content" className="skip-link">
         Skip to editor
       </a>
-      <Toolbar onOpenExportWizard={() => setExportWizardOpen(true)} />
+      <Toolbar
+        onOpenExportWizard={() => setExportWizardOpen(true)}
+        onOpenNotionImport={() => setNotionImportOpen(true)}
+      />
       {dragDropError !== '' && (
         <div
           role="alert"
@@ -208,6 +213,12 @@ export default function App() {
       </main>
       {themeCreatorOpen && <ThemeCreatorPanel />}
       {exportWizardOpen && <ExportWizard onClose={() => setExportWizardOpen(false)} />}
+      {notionImportOpen && (
+        <NotionImportPanel
+          onClose={() => setNotionImportOpen(false)}
+          onImport={(md) => setMarkdown(md)}
+        />
+      )}
       {dragging && (
         <div className="pointer-events-none fixed inset-0 flex items-center justify-center bg-blue-600/20">
           <p className="rounded-xl bg-white px-6 py-4 text-center shadow-2xl dark:bg-neutral-800">

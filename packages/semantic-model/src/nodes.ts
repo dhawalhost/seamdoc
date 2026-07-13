@@ -55,8 +55,22 @@ export interface SdmInput {
   readonly width?: number;
 }
 
+export interface SdmFootnoteRef {
+  readonly type: 'footnoteRef';
+  readonly identifier: string;
+  readonly label: string;
+}
+
 export type SdmInline =
-  SdmText | SdmEmphasis | SdmStrong | SdmInlineCode | SdmLink | SdmLineBreak | SdmImage | SdmInput;
+  | SdmText
+  | SdmEmphasis
+  | SdmStrong
+  | SdmInlineCode
+  | SdmLink
+  | SdmLineBreak
+  | SdmImage
+  | SdmInput
+  | SdmFootnoteRef;
 
 export interface SdmHeading {
   readonly type: 'heading';
@@ -128,6 +142,17 @@ export interface SdmPageBreak {
   readonly type: 'pageBreak';
 }
 
+export interface SdmToc {
+  readonly type: 'toc';
+}
+
+export interface SdmFootnoteDef {
+  readonly type: 'footnoteDef';
+  readonly identifier: string;
+  readonly label: string;
+  readonly children: readonly SdmBlock[];
+}
+
 export type SdmBlock =
   | SdmHeading
   | SdmParagraph
@@ -137,7 +162,9 @@ export type SdmBlock =
   | SdmList
   | SdmTable
   | SdmColumns
-  | SdmPageBreak;
+  | SdmPageBreak
+  | SdmToc
+  | SdmFootnoteDef;
 
 export interface SdmDocument {
   readonly type: 'document';
@@ -146,4 +173,5 @@ export interface SdmDocument {
   readonly children: readonly SdmBlock[];
 }
 
-export type SdmNode = SdmDocument | SdmBlock | SdmInline | SdmListItem | SdmTableRow | SdmTableCell;
+export type SdmNode =
+  SdmDocument | SdmBlock | SdmInline | SdmListItem | SdmTableRow | SdmTableCell | SdmFootnoteDef;

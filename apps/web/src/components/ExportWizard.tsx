@@ -16,6 +16,7 @@ import {
   FileCode,
   Presentation,
   BookOpen,
+  Book,
   ChevronLeft,
   ChevronRight,
   X,
@@ -76,6 +77,14 @@ const FORMAT_OPTIONS: FormatOption[] = [
     extension: '.odt',
     icon: BookOpen,
     color: '#319795',
+  },
+  {
+    id: 'epub',
+    label: 'EPUB Book',
+    description: 'Reflowable e-book format. Perfect for e-readers and mobile devices.',
+    extension: '.epub',
+    icon: Book,
+    color: '#805AD5',
   },
 ];
 

@@ -18,6 +18,8 @@ import type {
   RootContent,
   Table,
   TableRow,
+  FootnoteDefinition,
+  FootnoteReference,
 } from '@seamdoc/ast';
 import type { DocumentMetadata } from '@seamdoc/types';
 import { DEFAULT_DOCUMENT_METADATA, SDM_VERSION } from '@seamdoc/shared';
@@ -117,10 +119,22 @@ function convertBlock(node: RootContent): SdmBlock | null {
       return convertList(node);
     case 'table':
       return convertTable(node);
+    case 'footnoteDefinition': {
+      const footnote = node as FootnoteDefinition;
+      return {
+        type: 'footnoteDef',
+        identifier: footnote.identifier,
+        label: footnote.label ?? footnote.identifier,
+        children: convertBlocks(footnote.children),
+      };
+    }
     case 'html': {
       const val = (node as { value?: string }).value || '';
       if (val.trim() === '<!-- pagebreak -->') {
         return { type: 'pageBreak' };
+      }
+      if (val.trim() === '<!-- toc -->') {
+        return { type: 'toc' };
       }
       return null;
     }
@@ -141,6 +155,13 @@ function convertHeading(node: Heading): SdmBlock {
 }
 
 function convertParagraph(node: Paragraph): SdmBlock {
+  if (
+    node.children.length === 1 &&
+    node.children[0]?.type === 'text' &&
+    node.children[0].value.trim().toUpperCase() === '[TOC]'
+  ) {
+    return { type: 'toc' };
+  }
   return { type: 'paragraph', children: convertInlines(node.children) };
 }
 
@@ -234,6 +255,16 @@ function convertInline(node: PhrasingContent): readonly SdmInline[] {
       ];
     case 'delete':
       return convertInlines(node.children);
+    case 'footnoteReference': {
+      const ref = node as FootnoteReference;
+      return [
+        {
+          type: 'footnoteRef',
+          identifier: ref.identifier,
+          label: ref.label ?? ref.identifier,
+        },
+      ];
+    }
     default:
       return [];
   }

@@ -17,6 +17,8 @@ import type {
   SdmQuote,
   SdmTable,
   SdmTableRow,
+  SdmHeading,
+  SdmListItem,
   // SdmColumns,
 } from '@seamdoc/semantic-model';
 import type { Theme } from '@seamdoc/themes';
@@ -69,8 +71,179 @@ function applySettingsOverrides(theme: Theme, settings: DocumentSettings): Theme
   };
 }
 
+function preprocessDocument(document: SdmDocument): SdmDocument {
+  const headings = document.children.filter((c): c is SdmHeading => c.type === 'heading');
+
+  const processedChildren = document.children.map((child): SdmBlock => {
+    if (child.type === 'toc') {
+      const items: SdmListItem[] = headings
+        .filter((h) => h.level <= 3)
+        .map((h) => {
+          const depthPrefix = '    '.repeat(h.level - 1);
+          const textRuns = h.children;
+          return {
+            type: 'listItem' as const,
+            children: [
+              {
+                type: 'paragraph' as const,
+                children: [{ type: 'text' as const, value: depthPrefix }, ...textRuns],
+              },
+            ],
+          };
+        });
+
+      return {
+        type: 'list' as const,
+        ordered: false,
+        items,
+      };
+    }
+    return child;
+  });
+
+  // Footnote definition collection and extraction
+  const footnoteDefs = new Map<string, SdmBlock[]>();
+  const bodyBlocks: SdmBlock[] = [];
+
+  for (const block of processedChildren) {
+    if (block.type === 'footnoteDef') {
+      footnoteDefs.set(block.identifier, [...block.children]);
+    } else {
+      bodyBlocks.push(block);
+    }
+  }
+
+  const refsOrder: string[] = [];
+
+  function mapInlineFootnotes(inline: SdmInline): SdmInline {
+    if (inline.type === 'footnoteRef') {
+      let idx = refsOrder.indexOf(inline.identifier);
+      if (idx === -1) {
+        refsOrder.push(inline.identifier);
+        idx = refsOrder.length - 1;
+      }
+      const num = idx + 1;
+      return {
+        type: 'text',
+        value: `[${num}]`,
+      };
+    }
+    if ('children' in inline && inline.children !== undefined) {
+      return {
+        ...inline,
+        children: inline.children.map(mapInlineFootnotes),
+      } as SdmInline;
+    }
+    return inline;
+  }
+
+  function mapBlockFootnotes(block: SdmBlock): SdmBlock {
+    switch (block.type) {
+      case 'paragraph':
+      case 'heading':
+        return {
+          ...block,
+          children: block.children.map(mapInlineFootnotes),
+        } as SdmBlock;
+      case 'quote':
+        return {
+          ...block,
+          children: block.children.map(mapBlockFootnotes),
+        };
+      case 'list':
+        return {
+          ...block,
+          items: block.items.map((item) => ({
+            ...item,
+            children: item.children.map(mapBlockFootnotes),
+          })),
+        };
+      case 'table':
+        return {
+          ...block,
+          header: block.header
+            ? {
+                ...block.header,
+                cells: block.header.cells.map((c) => ({
+                  ...c,
+                  children: c.children.map(mapInlineFootnotes),
+                })),
+              }
+            : null,
+          rows: block.rows.map((row) => ({
+            ...row,
+            cells: row.cells.map((c) => ({
+              ...c,
+              children: c.children.map(mapInlineFootnotes),
+            })),
+          })),
+        };
+      case 'columns':
+        return {
+          ...block,
+          children: block.children.map((col) => ({
+            ...col,
+            children: col.children.map(mapBlockFootnotes),
+          })),
+        };
+      default:
+        return block;
+    }
+  }
+
+  const mappedBodyBlocks = bodyBlocks.map(mapBlockFootnotes);
+
+  if (refsOrder.length > 0) {
+    const listItems: SdmListItem[] = refsOrder.map((id, index) => {
+      const defBlocks = footnoteDefs.get(id) || [
+        {
+          type: 'paragraph' as const,
+          children: [{ type: 'text' as const, value: 'Footnote definition missing.' }],
+        },
+      ];
+
+      const num = index + 1;
+      const firstBlock = defBlocks[0];
+      const formattedBlocks = [...defBlocks];
+
+      if (firstBlock && firstBlock.type === 'paragraph') {
+        formattedBlocks[0] = {
+          ...firstBlock,
+          children: [{ type: 'text' as const, value: `[${num}] ` }, ...firstBlock.children],
+        };
+      } else {
+        formattedBlocks.unshift({
+          type: 'paragraph' as const,
+          children: [{ type: 'text' as const, value: `[${num}] ` }],
+        });
+      }
+
+      return {
+        type: 'listItem' as const,
+        children: formattedBlocks,
+      };
+    });
+
+    mappedBodyBlocks.push({
+      type: 'thematicBreak' as const,
+    });
+
+    mappedBodyBlocks.push({
+      type: 'list' as const,
+      ordered: false,
+      items: listItems,
+    });
+  }
+
+  return {
+    ...document,
+    children: mappedBodyBlocks,
+  };
+}
+
 export function layoutDocument(input: LayoutInput): RenderDocument {
-  const { document, settings } = input;
+  const document = preprocessDocument(input.document);
+  const { settings } = input;
   const theme = applySettingsOverrides(input.theme, settings);
   const pageSize = resolvePageSize(settings);
   const contentWidth = pageSize.width - settings.margins.left - settings.margins.right;
@@ -372,6 +545,10 @@ function buildBlock(
         },
       ];
     }
+    case 'toc':
+      return [];
+    case 'footnoteDef':
+      return [];
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled block node: ${JSON.stringify(exhaustive)}`);

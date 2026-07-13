@@ -96,7 +96,18 @@ export type ExportFormat = 'docx' | 'pdf' | 'html' | 'pptx' | 'odt' | 'epub';
 
 /** Semantic slots a template can map to native document styles. */
 export type TemplateMappableNode =
-  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'paragraph' | 'quote' | 'code' | 'table';
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'paragraph'
+  | 'quote'
+  | 'code'
+  | 'table'
+  | 'header'
+  | 'footer';
 
 /**
  * Format-neutral template data exporters may honor
@@ -115,6 +126,7 @@ export interface ExportSettings {
   readonly metadata: DocumentMetadata;
   readonly template?: ExportTemplate;
   readonly pdfSecurity?: PdfSecuritySettings | null;
+  readonly customFonts?: Readonly<Record<string, ArrayBuffer | ArrayBufferView | string>>;
 }
 
 export interface ExportResult {

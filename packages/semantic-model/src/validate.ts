@@ -24,6 +24,8 @@ const BLOCK_TYPES: ReadonlySet<SdmBlock['type']> = new Set([
   'table',
   'columns',
   'pageBreak',
+  'toc',
+  'footnoteDef',
 ]);
 
 const INLINE_TYPES: ReadonlySet<SdmInline['type']> = new Set([
@@ -35,6 +37,7 @@ const INLINE_TYPES: ReadonlySet<SdmInline['type']> = new Set([
   'link',
   'image',
   'input',
+  'footnoteRef',
 ]);
 
 export interface ValidationIssue {
@@ -128,6 +131,26 @@ function validateBlock(block: SdmBlock, path: string, issues: ValidationIssue[])
       });
       break;
     }
+    case 'toc':
+      break;
+    case 'footnoteDef':
+      if (typeof block.identifier !== 'string' || block.identifier === '') {
+        issues.push({
+          path: `${path}/identifier`,
+          message: 'Footnote definition must have a non-empty identifier.',
+        });
+      }
+      if (!Array.isArray(block.children)) {
+        issues.push({
+          path: `${path}/children`,
+          message: 'Footnote definition children must be an array.',
+        });
+      } else {
+        block.children.forEach((child, index) => {
+          validateBlock(child, `${path}/children/${index}`, issues);
+        });
+      }
+      break;
     default: {
       const exhaustive: never = block;
       throw new Error(`Unhandled block type: ${String(exhaustive)}`);
@@ -213,6 +236,14 @@ function validateInlines(
           issues.push({
             path: `${inlinePath}/name`,
             message: 'Input name must be a non-empty string.',
+          });
+        }
+        break;
+      case 'footnoteRef':
+        if (typeof inline.identifier !== 'string' || inline.identifier === '') {
+          issues.push({
+            path: `${inlinePath}/identifier`,
+            message: 'Footnote reference must have a non-empty identifier.',
           });
         }
         break;

@@ -96,9 +96,9 @@ async function breakLines(
     }
 
     // Split while keeping separators so spacing is preserved.
-    const words = sanitizeText(run.text)
-      .split(/(\s+)/)
-      .filter((word) => word !== '');
+    const isCustom = fonts.isCustomFont(run.style);
+    const textToProcess = isCustom ? run.text : sanitizeText(run.text);
+    const words = textToProcess.split(/(\s+)/).filter((word) => word !== '');
     for (const word of words) {
       const width = font.widthOfTextAtSize(word, run.style.fontSize);
       if (lineWidth + width > maxWidth && lineWidth > 0 && word.trim() !== '') {
@@ -185,8 +185,9 @@ export class PageRenderer {
     if (pieces.length === 0) {
       return;
     }
-    const text = sanitizeText(pieces.join('  '));
     const font = await this.fonts.fontFor(config.style);
+    const isCustom = this.fonts.isCustomFont(config.style);
+    const text = isCustom ? pieces.join('  ') : sanitizeText(pieces.join('  '));
     const width = font.widthOfTextAtSize(text, config.style.fontSize);
     const x = (this.pageSpec.width - width) / 2;
     const y =
@@ -336,7 +337,8 @@ export class PageRenderer {
       const baseline = this.pdfY(cursorY + block.style.fontSize);
       for (const run of lineRuns) {
         const font = await this.fonts.fontFor(run.style);
-        const text = sanitizeText(run.text);
+        const isCustom = this.fonts.isCustomFont(run.style);
+        const text = isCustom ? run.text : sanitizeText(run.text);
         this.page.drawText(text, {
           x: cursorX,
           y: baseline,
@@ -388,7 +390,9 @@ export class PageRenderer {
           const style = child.runs[0]?.style;
           if (style !== undefined) {
             const font = await this.fonts.fontFor(style);
-            this.page.drawText(sanitizeText(item.marker), {
+            const isCustom = this.fonts.isCustomFont(style);
+            const markerText = isCustom ? item.marker : sanitizeText(item.marker);
+            this.page.drawText(markerText, {
               x: markerX,
               y: this.pdfY(cursorY + itemHeight + style.fontSize),
               size: style.fontSize,

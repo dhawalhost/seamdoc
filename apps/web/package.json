@@ -17,6 +17,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@seamdoc/core": "workspace:*",
     "@seamdoc/exporter-docx": "workspace:*",
+    "@seamdoc/exporter-epub": "workspace:*",
     "@seamdoc/exporter-html": "workspace:*",
     "@seamdoc/exporter-odt": "workspace:*",
     "@seamdoc/exporter-pdf": "workspace:^",

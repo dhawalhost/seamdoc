@@ -33,6 +33,7 @@ const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordproces
 function buildHeaderFooter(
   config: RenderHeaderFooter | null,
   position: 'header' | 'footer',
+  mapping: ExportTemplate['mapping'],
 ): Header | Footer | undefined {
   if (config === null) {
     return undefined;
@@ -60,7 +61,13 @@ function buildHeaderFooter(
       }),
     );
   }
-  const paragraph = new Paragraph({ children, alignment: AlignmentType.CENTER });
+  const styleId =
+    position === 'header' ? (mapping.header ?? 'Header') : (mapping.footer ?? 'Footer');
+  const paragraph = new Paragraph({
+    children,
+    alignment: AlignmentType.CENTER,
+    style: styleId,
+  });
   return position === 'header'
     ? new Header({ children: [paragraph] })
     : new Footer({ children: [paragraph] });
@@ -68,8 +75,8 @@ function buildHeaderFooter(
 
 function buildSection(page: RenderPage, mapping: ExportTemplate['mapping']): ISectionOptions {
   const landscape = page.width > page.height;
-  const header = buildHeaderFooter(page.header, 'header');
-  const footer = buildHeaderFooter(page.footer, 'footer');
+  const header = buildHeaderFooter(page.header, 'header', mapping);
+  const footer = buildHeaderFooter(page.footer, 'footer', mapping);
   return {
     properties: {
       page: {

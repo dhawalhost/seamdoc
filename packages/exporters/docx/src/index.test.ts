@@ -136,20 +136,35 @@ describe('DocxExporter', () => {
 <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:style w:type="paragraph" w:styleId="AcmeHeading1"><w:name w:val="Acme Heading 1"/></w:style>
   <w:style w:type="paragraph" w:styleId="AcmeBody"><w:name w:val="Acme Body"/></w:style>
+  <w:style w:type="paragraph" w:styleId="AcmeHeader"><w:name w:val="Acme Header"/></w:style>
+  <w:style w:type="paragraph" w:styleId="AcmeFooter"><w:name w:val="Acme Footer"/></w:style>
 </w:styles>`;
-    const outcome = renderMarkdown(FIXTURE_MARKDOWN, { theme: 'minimal' });
+    const outcome = renderMarkdown(FIXTURE_MARKDOWN, {
+      theme: 'minimal',
+      settings: { header: 'MyHeader', footer: 'MyFooter', pageNumbers: true },
+    });
     const result = await docxExporter.export(outcome.renderDocument, {
       filename: 'templated',
       metadata: DEFAULT_DOCUMENT_METADATA,
       template: {
         stylesXml,
-        mapping: { h1: 'AcmeHeading1', paragraph: 'AcmeBody' },
+        mapping: {
+          h1: 'AcmeHeading1',
+          paragraph: 'AcmeBody',
+          header: 'AcmeHeader',
+          footer: 'AcmeFooter',
+        },
       },
     });
 
     const zip = await JSZip.loadAsync(result.data);
     const embeddedStyles = await zip.file('word/styles.xml')!.async('string');
     expect(embeddedStyles).toContain('AcmeHeading1');
+
+    const headerXml = await zip.file('word/header1.xml')!.async('string');
+    const footerXml = await zip.file('word/footer1.xml')!.async('string');
+    expect(headerXml).toContain('<w:pStyle w:val="AcmeHeader"/>');
+    expect(footerXml).toContain('<w:pStyle w:val="AcmeFooter"/>');
 
     const xml = await extractDocumentXml(result.data);
     expect(xml).toContain('<w:pStyle w:val="AcmeHeading1"/>');

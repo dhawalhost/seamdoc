@@ -15,6 +15,7 @@ import {
   Sun,
   WandSparkles,
   X,
+  Database,
 } from 'lucide-react';
 import { FEATURE_FLAGS } from '../lib/features';
 import { builtinThemes, getBuiltinTheme, validateTheme } from '@seamdoc/themes';
@@ -27,7 +28,13 @@ import { computeDocumentStats, formatDocumentStats } from '../lib/documentStats'
 import { TooltipButton, toolbarIconClass } from './TooltipButton';
 import { ThemeSelect } from './ThemeSelect';
 
-export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => void }) {
+export function Toolbar({
+  onOpenExportWizard,
+  onOpenNotionImport,
+}: {
+  onOpenExportWizard?: () => void;
+  onOpenNotionImport?: () => void;
+}) {
   const { t } = useTranslation();
   const {
     markdown,
@@ -179,6 +186,16 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
         }}
       />
 
+      <TooltipButton
+        tooltip={t('toolbarImportNotion')}
+        aria-label={t('toolbarImportNotionAriaLabel')}
+        onClick={onOpenNotionImport}
+        className={toolbarIconClass}
+        data-testid="notion-import-toggle"
+      >
+        <Database size={18} />
+      </TooltipButton>
+
       <div className="mx-2 h-6 w-px bg-neutral-200 dark:bg-neutral-700" />
 
       <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
@@ -193,6 +210,7 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
           data-testid="theme-select"
           className="sr-only"
           aria-hidden="true"
+          tabIndex={-1}
         >
           {builtinThemes.map((theme) => (
             <option key={theme.metadata.id} value={theme.metadata.id}>
@@ -209,7 +227,7 @@ export function Toolbar({ onOpenExportWizard }: { onOpenExportWizard?: () => voi
         {themeMetadata !== undefined && (
           <span
             data-testid="theme-metadata"
-            className="hidden text-xs text-neutral-400 lg:inline"
+            className="hidden text-xs text-neutral-500 lg:inline"
             title={themeMetadata.description}
           >
             v{themeMetadata.version}

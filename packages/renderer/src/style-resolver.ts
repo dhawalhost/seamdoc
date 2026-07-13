@@ -120,7 +120,9 @@ function collectRuns(
           });
         }
         break;
-
+      case 'footnoteRef':
+        out.push({ text: `[${node.label}]`, style: { ...style, underline: true } });
+        break;
       default: {
         const exhaustive: never = node;
         throw new Error(`Unhandled inline node: ${JSON.stringify(exhaustive)}`);

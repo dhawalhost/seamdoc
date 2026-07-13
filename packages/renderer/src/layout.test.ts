@@ -221,4 +221,38 @@ describe('layoutDocument', () => {
     expect(tree.pages[1]?.children).toHaveLength(1);
     expect(tree.pages[1]?.children[0]?.type).toBe('paragraph');
   });
+
+  it('generates Table of Contents from headings', () => {
+    const tree = layout('[TOC]\n\n# Heading 1\n\n## Heading 2');
+    const list = tree.pages[0]?.children[0] as RenderList;
+    expect(list.type).toBe('list');
+    expect(list.ordered).toBe(false);
+    expect(list.items).toHaveLength(2);
+    const runs0 = (list.items[0]?.children[0] as RenderParagraph).runs;
+    expect(runs0[0]?.text).toBe('');
+    expect(runs0[1]?.text).toBe('Heading 1');
+
+    const runs1 = (list.items[1]?.children[0] as RenderParagraph).runs;
+    expect(runs1[0]?.text).toBe('    ');
+    expect(runs1[1]?.text).toBe('Heading 2');
+  });
+
+  it('compiles GFM footnotes correctly into footnotes section', () => {
+    const tree = layout('Here is a footnote[^1].\n\n[^1]: This is the footnote definition.');
+    expect(tree.pages[0]?.children).toHaveLength(3);
+
+    const paragraph = tree.pages[0]?.children[0] as RenderParagraph;
+    expect(paragraph.runs[0]?.text).toBe('Here is a footnote');
+    expect(paragraph.runs[1]?.text).toBe('[1]');
+    expect(paragraph.runs[2]?.text).toBe('.');
+
+    expect(tree.pages[0]?.children[1]?.type).toBe('rule');
+
+    const list = tree.pages[0]?.children[2] as RenderList;
+    expect(list.type).toBe('list');
+    expect(list.items).toHaveLength(1);
+    const defParagraph = list.items[0]?.children[0] as RenderParagraph;
+    expect(defParagraph.runs[0]?.text).toBe('[1] ');
+    expect(defParagraph.runs[1]?.text).toBe('This is the footnote definition.');
+  });
 });

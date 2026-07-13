@@ -6,7 +6,7 @@
 
 import { importHtml, importMdx, importAsciidoc } from '@seamdoc/importers';
 import { DEFAULT_DOCUMENT_METADATA } from '@seamdoc/shared';
-import type { SdmBlock, SdmInline } from '@seamdoc/semantic-model';
+import { sdmToMarkdown } from './sdmToMarkdown';
 
 export type ImportableFormat = 'markdown' | 'html' | 'mdx' | 'asciidoc';
 
@@ -51,30 +51,6 @@ export const FORMAT_LABELS: Record<ImportableFormat, string> = {
   asciidoc: 'AsciiDoc (.adoc)',
 };
 
-function extractText(node: SdmInline): string {
-  if (node.type === 'text' || node.type === 'inlineCode') {
-    return node.value;
-  }
-  if (node.type === 'image') {
-    return node.alt;
-  }
-  if ('children' in node && node.children !== undefined) {
-    return node.children.map(extractText).join('');
-  }
-  return '';
-}
-
-function reconstructBlockMarkdown(block: SdmBlock): string {
-  if (block.type === 'paragraph') {
-    return block.children.map(extractText).join('');
-  }
-  if (block.type === 'heading') {
-    const prefix = '#'.repeat(block.level);
-    return `${prefix} ${block.children.map(extractText).join('')}`;
-  }
-  return '';
-}
-
 /**
  * Reads a File and converts it to Markdown string.
  * Markdown files are returned as-is; other formats go through their
@@ -98,19 +74,19 @@ export async function importFile(file: File): Promise<ImportResult> {
 
     case 'mdx': {
       const doc = importMdx(text, metadata);
-      const md = doc.children.map(reconstructBlockMarkdown).filter(Boolean).join('\n\n');
+      const md = sdmToMarkdown(doc);
       return { markdown: md || text, format, filename: file.name };
     }
 
     case 'html': {
       const doc = importHtml(text, metadata);
-      const md = doc.children.map(reconstructBlockMarkdown).filter(Boolean).join('\n\n');
+      const md = sdmToMarkdown(doc);
       return { markdown: md || text, format, filename: file.name };
     }
 
     case 'asciidoc': {
       const doc = importAsciidoc(text, metadata);
-      const md = doc.children.map(reconstructBlockMarkdown).filter(Boolean).join('\n\n');
+      const md = sdmToMarkdown(doc);
       return { markdown: md || text, format, filename: file.name };
     }
   }

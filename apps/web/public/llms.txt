@@ -1,0 +1,6 @@
+# Seamdoc
+
+Seamdoc is an open-source semantic document rendering platform that converts Markdown to beautifully themed Word (DOCX) and PDF documents.
+
+- [Repository](https://github.com/seamdoc/seamdoc)
+- [Architecture](https://github.com/seamdoc/seamdoc/blob/main/docs/02-architecture)

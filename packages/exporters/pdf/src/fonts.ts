@@ -77,14 +77,90 @@ function standardFontFor(family: FontFamily, bold: boolean, italic: boolean): St
 }
 
 /** Embeds standard fonts lazily and caches them per document. */
-export class FontRegistry {
-  private readonly cache = new Map<StandardFonts, PDFFont>();
+function base64ToUint8Array(base64: string): Uint8Array {
+  const base64Content = base64.includes(';base64,') ? base64.split(';base64,')[1]! : base64;
+  const binaryString = atob(base64Content);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
 
-  constructor(private readonly document: PDFDocument) {}
+/** Embeds standard and custom fonts lazily and caches them per document. */
+export class FontRegistry {
+  private readonly cache = new Map<StandardFonts | string, PDFFont>();
+
+  constructor(
+    private readonly document: PDFDocument,
+    private readonly customFonts?: Readonly<Record<string, ArrayBuffer | ArrayBufferView | string>>,
+  ) {}
+
+  isCustomFont(style: RunStyle): boolean {
+    if (!this.customFonts) return false;
+    const isBold = style.fontWeight >= 600;
+    const isItalic = style.italic;
+    const family = style.fontFamily;
+    let fontKey = family;
+    if (isBold && isItalic) {
+      fontKey = `${family}-BoldItalic`;
+      if (!(fontKey in this.customFonts)) fontKey = `${family}-Bold-Italic`;
+    } else if (isBold) {
+      fontKey = `${family}-Bold`;
+    } else if (isItalic) {
+      fontKey = `${family}-Italic`;
+    } else {
+      fontKey = `${family}-Regular`;
+      if (!(fontKey in this.customFonts)) fontKey = family;
+    }
+    return fontKey in this.customFonts || family in this.customFonts;
+  }
 
   async fontFor(style: RunStyle): Promise<PDFFont> {
+    const isBold = style.fontWeight >= 600;
+    const isItalic = style.italic;
+
+    if (this.customFonts) {
+      const family = style.fontFamily;
+      let fontKey = family;
+      if (isBold && isItalic) {
+        fontKey = `${family}-BoldItalic`;
+        if (!(fontKey in this.customFonts)) fontKey = `${family}-Bold-Italic`;
+      } else if (isBold) {
+        fontKey = `${family}-Bold`;
+      } else if (isItalic) {
+        fontKey = `${family}-Italic`;
+      } else {
+        fontKey = `${family}-Regular`;
+        if (!(fontKey in this.customFonts)) fontKey = family;
+      }
+
+      const fontData = this.customFonts[fontKey] || this.customFonts[family];
+      if (fontData) {
+        const cached = this.cache.get(fontKey);
+        if (cached !== undefined) {
+          return cached;
+        }
+
+        let bytes: Uint8Array;
+        if (fontData instanceof ArrayBuffer) {
+          bytes = new Uint8Array(fontData);
+        } else if (typeof fontData === 'string') {
+          bytes = base64ToUint8Array(fontData);
+        } else if (ArrayBuffer.isView(fontData)) {
+          bytes = new Uint8Array(fontData.buffer, fontData.byteOffset, fontData.byteLength);
+        } else {
+          throw new Error(`Unsupported font data type for ${fontKey}`);
+        }
+
+        const font = await this.document.embedFont(bytes);
+        this.cache.set(fontKey, font);
+        return font;
+      }
+    }
+
     const family = style.code ? 'mono' : classifyFamily(style.fontFamily);
-    const name = standardFontFor(family, style.fontWeight >= 600, style.italic);
+    const name = standardFontFor(family, isBold, isItalic);
     const cached = this.cache.get(name);
     if (cached !== undefined) {
       return cached;

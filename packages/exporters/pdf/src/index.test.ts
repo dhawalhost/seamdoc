@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import { renderMarkdown } from '@seamdoc/core';
 import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 import type { ExportSettings } from '@seamdoc/types';
@@ -114,5 +116,37 @@ describe('PdfExporter', () => {
     const text = new TextDecoder('latin1').decode(result.data);
     // Checkboxes and Text fields are added to fields array.
     expect(text).toContain('/Fields');
+  });
+
+  it('embeds custom TTF/OTF fonts in the PDF and bypasses text sanitization', async () => {
+    const fontPath = path.resolve(
+      __dirname,
+      '../../../../node_modules/.pnpm/katex@0.16.47/node_modules/katex/dist/fonts/KaTeX_Main-Regular.ttf',
+    );
+    if (fs.existsSync(fontPath)) {
+      const fontBuffer = fs.readFileSync(fontPath);
+      const doc = render('Greek characters: αβγδε');
+      const page = doc.pages[0]!;
+      const paragraph = page.children[0];
+      if (paragraph && 'runs' in paragraph && Array.isArray(paragraph.runs) && paragraph.runs[0]) {
+        (paragraph.runs[0] as { style: { fontFamily: string } }).style.fontFamily = 'KaTeX_Main';
+      }
+
+      const fontSettings: ExportSettings = {
+        filename: 'custom-font',
+        metadata: { ...DEFAULT_DOCUMENT_METADATA, title: 'Custom Font' },
+        customFonts: {
+          KaTeX_Main: fontBuffer.buffer.slice(
+            fontBuffer.byteOffset,
+            fontBuffer.byteOffset + fontBuffer.byteLength,
+          ),
+        },
+      };
+
+      const result = await pdfExporter.export(doc, fontSettings);
+      expect(result.data.byteLength).toBeGreaterThan(1000);
+      const text = new TextDecoder('latin1').decode(result.data);
+      expect(text).not.toContain('?????');
+    }
   });
 });
