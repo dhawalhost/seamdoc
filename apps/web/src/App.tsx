@@ -9,6 +9,7 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { AppSettingsPanel } from './components/AppSettingsPanel';
 import { ThemeCreatorPanel } from './components/ThemeCreatorPanel';
 import { CriticPanel } from './components/CriticPanel';
+import { HistoryPanel } from './components/HistoryPanel';
 import { WebFontLoader } from './components/WebFontLoader';
 import { ExportWizard } from './components/ExportWizard';
 import { NotionImportPanel } from './components/NotionImportPanel';
@@ -34,6 +35,7 @@ export default function App() {
     appSettingsOpen,
     themeCreatorOpen,
     criticOpen,
+    historyOpen,
     previewZoom,
     printPreview,
     editorFullscreen,
@@ -41,6 +43,8 @@ export default function App() {
     dragDropError,
     setMarkdown,
     setDragDropError,
+    loadRevisions,
+    createRevisionSnapshot,
   } = useAppStore();
   const [dragging, setDragging] = useState(false);
   const [exportWizardOpen, setExportWizardOpen] = useState(false);
@@ -79,6 +83,17 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('high-contrast', highContrast);
   }, [highContrast]);
+
+  useEffect(() => {
+    void loadRevisions();
+  }, [loadRevisions]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void createRevisionSnapshot();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [markdown, createRevisionSnapshot]);
 
   const onDrop = useCallback(
     async (event: DragEvent) => {
@@ -210,6 +225,7 @@ export default function App() {
         {settingsOpen && <SettingsPanel />}
         {appSettingsOpen && <AppSettingsPanel />}
         {FEATURE_FLAGS.enableAi && criticOpen && <CriticPanel />}
+        {historyOpen && <HistoryPanel />}
       </main>
       {themeCreatorOpen && <ThemeCreatorPanel />}
       {exportWizardOpen && <ExportWizard onClose={() => setExportWizardOpen(false)} />}

@@ -1,35 +1,5 @@
-import type { BrandPack } from '@seamdoc/types';
+import { BRAND_PACKS } from '@seamdoc/shared';
 import { useAppStore } from '../store';
-
-const BRAND_PACKS: readonly BrandPack[] = [
-  {
-    id: 'acme',
-    name: 'Acme Corporate',
-    primaryColor: '#1E3A8A',
-    secondaryColor: '#3B82F6',
-    fontFamilies: ['Inter', 'sans-serif'],
-    headerText: 'ACME CORP — CONFIDENTIAL',
-    footerText: 'Internal Use Only',
-  },
-  {
-    id: 'novatech',
-    name: 'Nova Labs',
-    primaryColor: '#7C3AED',
-    secondaryColor: '#06B6D4',
-    fontFamilies: ['Outfit', 'sans-serif'],
-    headerText: 'NOVA LABS RESEARCH',
-    footerText: 'Status: Draft Spec',
-  },
-  {
-    id: 'ekobios',
-    name: 'Eko Bio-sciences',
-    primaryColor: '#064E3B',
-    secondaryColor: '#10B981',
-    fontFamilies: ['Roboto', 'serif'],
-    headerText: 'EKO BIOMATERIAL REPORT',
-    footerText: 'Green Future Initiative',
-  },
-];
 
 export function BrandPackSelector() {
   const { settings, updateSettings } = useAppStore();

@@ -16,6 +16,7 @@ import {
   WandSparkles,
   X,
   Database,
+  History,
 } from 'lucide-react';
 import { FEATURE_FLAGS } from '../lib/features';
 import { builtinThemes, getBuiltinTheme, validateTheme } from '@seamdoc/themes';
@@ -58,6 +59,10 @@ export function Toolbar({
     setCriticOpen,
     newDocument,
     setMarkdown,
+    enabledPluginIds,
+    historyOpen,
+    setHistoryOpen,
+    saveStatus,
   } = useAppStore();
   const fileInput = useRef<HTMLInputElement>(null);
   const themeInput = useRef<HTMLInputElement>(null);
@@ -85,6 +90,7 @@ export function Toolbar({
         settings,
         metadata,
         template,
+        enabledPluginIds,
       );
     } catch (error) {
       setExportError(
@@ -347,6 +353,16 @@ export function Toolbar({
         <SlidersHorizontal size={18} />
       </TooltipButton>
 
+      <TooltipButton
+        tooltip="Local History & Revisions"
+        aria-label="Toggle Local History panel"
+        onClick={() => setHistoryOpen(!historyOpen)}
+        data-testid="history-toggle"
+        className={toolbarIconClass}
+      >
+        <History size={18} />
+      </TooltipButton>
+
       {FEATURE_FLAGS.enableAi && (
         <TooltipButton
           tooltip={t('toolbarAiCritic')}
@@ -366,6 +382,28 @@ export function Toolbar({
           {exportError}
         </span>
       )}
+
+      <div
+        className="mr-2 flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium text-neutral-500 rounded bg-neutral-150/50 dark:bg-neutral-800 dark:text-neutral-400"
+        title="Seamdoc runs local-first. Your documents are safely saved offline in your browser's IndexedDB database."
+      >
+        {saveStatus === 'saving' ? (
+          <>
+            <span className="h-1.5 w-1.5 animate-ping rounded-full bg-blue-500" />
+            <span>Saving...</span>
+          </>
+        ) : saveStatus === 'saved' ? (
+          <>
+            <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+            <span className="text-green-600 dark:text-green-400 font-semibold">Saved offline</span>
+          </>
+        ) : (
+          <>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span>Saved locally</span>
+          </>
+        )}
+      </div>
 
       <span
         className="mr-2 text-xs text-neutral-500 dark:text-neutral-400"

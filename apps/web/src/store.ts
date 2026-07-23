@@ -14,6 +14,13 @@ import { renderMarkdown, analyzeDocumentStructure, type CriticFinding } from '@s
 import type { StyleMapping, TemplateProfile } from '@seamdoc/templates';
 
 import type { PreviewZoom } from './lib/previewZoom';
+import {
+  type Revision,
+  getRevisions,
+  saveRevision,
+  deleteRevision as deleteDbRevision,
+  clearAllRevisions as clearAllDbRevisions,
+} from './lib/db';
 
 export const SAMPLE_MARKDOWN = `# Welcome to Seamdoc
 
@@ -84,7 +91,7 @@ interface AppState {
   toggleDarkMode: () => void;
   toggleHighContrast: () => void;
   setSettingsOpen: (open: boolean) => void;
-  setAppSettingsOpen: (open: boolean) => void;
+  setAppSettingsOpen: (appSettingsOpen: boolean) => void;
   openThemeCreator: () => void;
   closeThemeCreator: () => void;
   setThemeDraft: (theme: Theme) => void;
@@ -100,6 +107,17 @@ interface AppState {
   setDefaultExportFormat: (format: ExportFormat) => void;
   setDragDropError: (message: string) => void;
   newDocument: () => void;
+  enabledPluginIds: string[];
+  togglePluginId: (id: string) => void;
+  revisions: Revision[];
+  saveStatus: 'idle' | 'saving' | 'saved';
+  historyOpen: boolean;
+  setHistoryOpen: (open: boolean) => void;
+  loadRevisions: () => Promise<void>;
+  createRevisionSnapshot: () => Promise<void>;
+  restoreRevision: (revision: Revision) => void;
+  deleteRevisionFromStore: (id: number) => Promise<void>;
+  clearAllRevisionsFromStore: () => Promise<void>;
 }
 
 function upsertTheme(themes: readonly Theme[], theme: Theme): Theme[] {
@@ -163,9 +181,90 @@ export const useAppStore = create<AppState>()(
       criticOpen: false,
       criticFindings: [],
       criticLoading: false,
+      enabledPluginIds: ['latex', 'mermaid'],
+      togglePluginId: (id) =>
+        set((state) => ({
+          enabledPluginIds: state.enabledPluginIds.includes(id)
+            ? state.enabledPluginIds.filter((x) => x !== id)
+            : [...state.enabledPluginIds, id],
+        })),
+      revisions: [],
+      saveStatus: 'idle',
+      historyOpen: false,
+      setHistoryOpen: (historyOpen) =>
+        set((state) => ({
+          historyOpen,
+          settingsOpen: historyOpen ? false : state.settingsOpen,
+          appSettingsOpen: historyOpen ? false : state.appSettingsOpen,
+          criticOpen: historyOpen ? false : state.criticOpen,
+        })),
+      loadRevisions: async () => {
+        try {
+          const revs = await getRevisions();
+          set({ revisions: revs });
+        } catch (err) {
+          console.error('[db] Failed to load revisions:', err);
+        }
+      },
+      createRevisionSnapshot: async () => {
+        const { markdown, metadata } = get();
+        if (!markdown.trim()) {
+          return;
+        }
+        set({ saveStatus: 'saving' });
+        try {
+          const saved = await saveRevision(markdown, metadata.title);
+          if (saved !== null) {
+            const revs = await getRevisions();
+            set({ revisions: revs, saveStatus: 'saved' });
+            setTimeout(() => {
+              if (get().saveStatus === 'saved') {
+                set({ saveStatus: 'idle' });
+              }
+            }, 2500);
+          } else {
+            set({ saveStatus: 'idle' });
+          }
+        } catch (err) {
+          console.error('[db] Failed to create snapshot:', err);
+          set({ saveStatus: 'idle' });
+        }
+      },
+      restoreRevision: (revision) => {
+        set({
+          markdown: revision.markdown,
+          metadata: {
+            ...get().metadata,
+            title: revision.title,
+          },
+          saveStatus: 'idle',
+        });
+      },
+      deleteRevisionFromStore: async (id) => {
+        try {
+          await deleteDbRevision(id);
+          const revs = await getRevisions();
+          set({ revisions: revs });
+        } catch (err) {
+          console.error('[db] Failed to delete revision:', err);
+        }
+      },
+      clearAllRevisionsFromStore: async () => {
+        try {
+          await clearAllDbRevisions();
+          set({ revisions: [] });
+        } catch (err) {
+          console.error('[db] Failed to clear revisions:', err);
+        }
+      },
       setGeminiApiKey: (geminiApiKey) => set({ geminiApiKey }),
       setCriticOpen: (criticOpen) =>
-        set({ criticOpen, settingsOpen: false, appSettingsOpen: false }),
+        set((state) => ({
+          criticOpen,
+          settingsOpen: criticOpen ? false : state.settingsOpen,
+          appSettingsOpen: criticOpen ? false : state.appSettingsOpen,
+          historyOpen: criticOpen ? false : state.historyOpen,
+        })),
       runCritic: async () => {
         const { markdown, geminiApiKey } = get();
         set({ criticLoading: true });
@@ -269,14 +368,28 @@ export const useAppStore = create<AppState>()(
         set((state) => ({ metadata: { ...state.metadata, ...partial } })),
       toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
       toggleHighContrast: () => set((state) => ({ highContrast: !state.highContrast })),
-      setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
-      setAppSettingsOpen: (appSettingsOpen) => set({ appSettingsOpen }),
+      setSettingsOpen: (settingsOpen) =>
+        set((state) => ({
+          settingsOpen,
+          appSettingsOpen: settingsOpen ? false : state.appSettingsOpen,
+          criticOpen: settingsOpen ? false : state.criticOpen,
+          historyOpen: settingsOpen ? false : state.historyOpen,
+        })),
+      setAppSettingsOpen: (appSettingsOpen) =>
+        set((state) => ({
+          appSettingsOpen,
+          settingsOpen: appSettingsOpen ? false : state.settingsOpen,
+          criticOpen: appSettingsOpen ? false : state.criticOpen,
+          historyOpen: appSettingsOpen ? false : state.historyOpen,
+        })),
       openThemeCreator: () =>
         set((state) => ({
           themeCreatorOpen: true,
           themeDraft: createThemeDraft(resolveThemeObject(state.themeId, state.customThemes)),
           settingsOpen: false,
           appSettingsOpen: false,
+          criticOpen: false,
+          historyOpen: false,
         })),
       closeThemeCreator: () => set({ themeCreatorOpen: false, themeDraft: null }),
       setThemeDraft: (themeDraft) => set({ themeDraft: withThemeDefaults(themeDraft) }),
@@ -346,6 +459,7 @@ export const useAppStore = create<AppState>()(
         defaultThemeId: state.defaultThemeId,
         defaultExportFormat: state.defaultExportFormat,
         geminiApiKey: state.geminiApiKey,
+        enabledPluginIds: state.enabledPluginIds,
       }),
     },
   ),

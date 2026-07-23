@@ -27,6 +27,9 @@ export function AppSettingsPanel() {
     setDefaultExportFormat,
     setGeminiApiKey,
     setAppSettingsOpen,
+    enabledPluginIds,
+    togglePluginId,
+    clearAllRevisionsFromStore,
   } = useAppStore();
 
   return (
@@ -113,8 +116,46 @@ export function AppSettingsPanel() {
         </select>
       </div>
 
+      <div className="border-t border-neutral-200 pt-3 dark:border-neutral-700">
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+          Community Plugins
+        </h3>
+        <div className="flex flex-col gap-3">
+          <label className="flex items-start gap-2.5 text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer">
+            <input
+              type="checkbox"
+              data-testid="plugin-toggle-latex"
+              checked={enabledPluginIds.includes('latex')}
+              onChange={() => togglePluginId('latex')}
+              className="mt-1"
+            />
+            <div>
+              <div className="font-medium text-xs leading-none">LaTeX Math</div>
+              <div className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1">
+                Renders math formulas as KaTeX SVGs ($...$ and $$...$$)
+              </div>
+            </div>
+          </label>
+          <label className="flex items-start gap-2.5 text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer">
+            <input
+              type="checkbox"
+              data-testid="plugin-toggle-mermaid"
+              checked={enabledPluginIds.includes('mermaid')}
+              onChange={() => togglePluginId('mermaid')}
+              className="mt-1"
+            />
+            <div>
+              <div className="font-medium text-xs leading-none">Mermaid Diagrams</div>
+              <div className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1">
+                Renders fenced code blocks with language "mermaid" as diagrams
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
       {FEATURE_FLAGS.enableAi && (
-        <div>
+        <div className="border-t border-neutral-200 pt-3 dark:border-neutral-700">
           <label className={labelClass} htmlFor="gemini-api-key">
             {t('geminiApiKeyLabel')}
           </label>
@@ -129,6 +170,23 @@ export function AppSettingsPanel() {
           />
         </div>
       )}
+
+      <div className="border-t border-neutral-200 pt-3 dark:border-neutral-700">
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+          Database & Storage
+        </h3>
+        <button
+          type="button"
+          onClick={() => {
+            if (confirm('Clear all local revisions history? This action is permanent.')) {
+              void clearAllRevisionsFromStore();
+            }
+          }}
+          className="w-full rounded border border-red-200 bg-red-50/50 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100/50 dark:border-red-900/30 dark:bg-red-950/10 dark:hover:bg-red-950/20 cursor-pointer"
+        >
+          Clear History Cache
+        </button>
+      </div>
 
       <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('preferencesFootnote')}</p>
     </aside>

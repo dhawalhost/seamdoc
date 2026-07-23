@@ -149,4 +149,18 @@ describe('PdfExporter', () => {
       expect(text).not.toContain('?????');
     }
   });
+
+  it('exports PDF with brand logo and watermark text', async () => {
+    const doc = renderMarkdown('Testing watermark logo', {
+      theme: 'minimal',
+      settings: {
+        ...DEFAULT_DOCUMENT_SETTINGS,
+        activeBrandPackId: 'acme',
+      },
+    }).renderDocument;
+    const result = await pdfExporter.export(doc, settings);
+    expect(result.data.byteLength).toBeGreaterThan(1000);
+    const text = new TextDecoder('latin1').decode(result.data);
+    expect(text).toContain('/ca 0.25');
+  });
 });

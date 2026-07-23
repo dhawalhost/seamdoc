@@ -90,6 +90,8 @@ export interface DocumentMetadata {
   readonly createdAt: string;
   /** ISO 8601 timestamp. Fixed values keep output deterministic. */
   readonly updatedAt: string;
+  readonly coverPage?: boolean | null;
+  readonly disclaimer?: string | null;
 }
 
 export type ExportFormat = 'docx' | 'pdf' | 'html' | 'pptx' | 'odt' | 'epub';

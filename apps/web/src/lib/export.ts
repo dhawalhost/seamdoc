@@ -33,6 +33,8 @@ function triggerDownload(data: BlobPart, mimeType: string, filename: string): vo
   URL.revokeObjectURL(url);
 }
 
+import { resolvePluginRegistry } from './plugins';
+
 export async function downloadDocument(
   format: ExportFormat,
   markdown: string,
@@ -40,6 +42,7 @@ export async function downloadDocument(
   settings: DocumentSettings,
   metadata: DocumentMetadata,
   template: ExportTemplate | null = null,
+  enabledPluginIds: string[] = ['latex', 'mermaid'],
 ): Promise<void> {
   const result = await exportMarkdown(markdown, registry, {
     format,
@@ -48,6 +51,7 @@ export async function downloadDocument(
     metadata,
     filename: metadata.title === '' ? 'document' : metadata.title,
     ...(template === null ? {} : { template }),
+    plugins: resolvePluginRegistry(enabledPluginIds),
   });
   triggerDownload(result.data, result.mimeType, result.filename);
 }

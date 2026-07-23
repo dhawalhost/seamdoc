@@ -30,53 +30,123 @@ import { serializeBlock } from './serializers.js';
 
 const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
+function extractTextFromSvgDataUrl(dataUrl: string): string | null {
+  try {
+    if (dataUrl.startsWith('data:image/svg+xml;base64,')) {
+      const base64 = dataUrl.split(',')[1];
+      if (base64) {
+        let svgText = '';
+        const win =
+          typeof globalThis !== 'undefined'
+            ? (globalThis as unknown as { atob?: (s: string) => string })
+            : undefined;
+        if (win && typeof win.atob === 'function') {
+          svgText = win.atob(base64);
+        } else {
+          svgText = Buffer.from(base64, 'base64').toString('utf8');
+        }
+        const textMatch = /<text[^>]*>([^<]+)<\/text>/.exec(svgText);
+        if (textMatch && textMatch[1]) {
+          return textMatch[1].trim();
+        }
+      }
+    }
+  } catch {
+    // Fall back to null
+  }
+  return null;
+}
+
 function buildHeaderFooter(
   config: RenderHeaderFooter | null,
   position: 'header' | 'footer',
   mapping: ExportTemplate['mapping'],
+  logo?: string | null,
+  watermark?: string | null,
 ): Header | Footer | undefined {
-  if (config === null) {
+  const children: Paragraph[] = [];
+
+  if (position === 'header' && watermark) {
+    const watermarkText = extractTextFromSvgDataUrl(watermark) || 'CONFIDENTIAL';
+    children.push(
+      new Paragraph({
+        children: [
+          new DocxTextRun({
+            text: watermarkText,
+            color: 'E0E0E0',
+            size: pointsToHalfPoints(36),
+            bold: true,
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+      }),
+    );
+  }
+
+  const runs: DocxTextRun[] = [];
+
+  if (position === 'header' && logo) {
+    const logoText = extractTextFromSvgDataUrl(logo);
+    if (logoText) {
+      runs.push(
+        new DocxTextRun({
+          text: `[${logoText}]  `,
+          bold: true,
+          color: '333333',
+          size: pointsToHalfPoints(10),
+        }),
+      );
+    }
+  }
+
+  if (config !== null) {
+    if (config.text !== '') {
+      runs.push(
+        new DocxTextRun({
+          text: config.text,
+          font: config.style.fontFamily,
+          size: pointsToHalfPoints(config.style.fontSize),
+          color: config.style.color.replace('#', '').toUpperCase(),
+        }),
+      );
+    }
+    if (config.pageNumbers) {
+      if (config.text !== '' || runs.length > 0) {
+        runs.push(new DocxTextRun({ text: '  ' }));
+      }
+      runs.push(
+        new DocxTextRun({
+          children: [PageNumber.CURRENT],
+          font: config.style.fontFamily,
+          size: pointsToHalfPoints(config.style.fontSize),
+        }),
+      );
+    }
+  }
+
+  if (runs.length > 0) {
+    const styleId =
+      position === 'header' ? (mapping.header ?? 'Header') : (mapping.footer ?? 'Footer');
+    children.push(
+      new Paragraph({
+        children: runs,
+        alignment: AlignmentType.CENTER,
+        style: styleId,
+      }),
+    );
+  }
+
+  if (children.length === 0) {
     return undefined;
   }
-  const children: DocxTextRun[] = [];
-  if (config.text !== '') {
-    children.push(
-      new DocxTextRun({
-        text: config.text,
-        font: config.style.fontFamily,
-        size: pointsToHalfPoints(config.style.fontSize),
-        color: config.style.color.replace('#', '').toUpperCase(),
-      }),
-    );
-  }
-  if (config.pageNumbers) {
-    if (config.text !== '') {
-      children.push(new DocxTextRun({ text: '  ' }));
-    }
-    children.push(
-      new DocxTextRun({
-        children: [PageNumber.CURRENT],
-        font: config.style.fontFamily,
-        size: pointsToHalfPoints(config.style.fontSize),
-      }),
-    );
-  }
-  const styleId =
-    position === 'header' ? (mapping.header ?? 'Header') : (mapping.footer ?? 'Footer');
-  const paragraph = new Paragraph({
-    children,
-    alignment: AlignmentType.CENTER,
-    style: styleId,
-  });
-  return position === 'header'
-    ? new Header({ children: [paragraph] })
-    : new Footer({ children: [paragraph] });
+
+  return position === 'header' ? new Header({ children }) : new Footer({ children });
 }
 
 function buildSection(page: RenderPage, mapping: ExportTemplate['mapping']): ISectionOptions {
   const landscape = page.width > page.height;
-  const header = buildHeaderFooter(page.header, 'header', mapping);
-  const footer = buildHeaderFooter(page.footer, 'footer', mapping);
+  const header = buildHeaderFooter(page.header, 'header', mapping, page.logo, page.watermark);
+  const footer = buildHeaderFooter(page.footer, 'footer', mapping, undefined, page.watermark);
   return {
     properties: {
       page: {

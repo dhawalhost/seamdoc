@@ -144,6 +144,15 @@ importers:
       '@seamdoc/importers':
         specifier: workspace:*
         version: link:../../packages/importers
+      '@seamdoc/plugin-latex':
+        specifier: workspace:*
+        version: link:../../packages/plugins-community/latex
+      '@seamdoc/plugin-mermaid':
+        specifier: workspace:*
+        version: link:../../packages/plugins-community/mermaid
+      '@seamdoc/plugins':
+        specifier: workspace:*
+        version: link:../../packages/plugins
       '@seamdoc/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer

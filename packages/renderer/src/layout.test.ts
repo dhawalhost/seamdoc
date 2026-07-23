@@ -255,4 +255,67 @@ describe('layoutDocument', () => {
     expect(defParagraph.runs[0]?.text).toBe('[1] ');
     expect(defParagraph.runs[1]?.text).toBe('This is the footnote definition.');
   });
+
+  it('applies Brand Pack overrides and sets logo and watermark properties', () => {
+    const tree = layoutDocument({
+      document: fromMdast(parseMarkdown('Testing Brand Packs')),
+      theme: minimalTheme,
+      settings: {
+        ...DEFAULT_DOCUMENT_SETTINGS,
+        activeBrandPackId: 'acme',
+      },
+    });
+    const page = tree.pages[0]!;
+    expect(page.logo).toBeDefined();
+    expect(page.watermark).toBeDefined();
+    expect(page.logo).toContain('data:image/svg+xml;base64,');
+    expect(page.watermark).toContain('data:image/svg+xml;base64,');
+
+    const paragraph = page.children[0] as RenderParagraph;
+    expect(paragraph.runs[0]?.style.fontFamily).toBe('Inter');
+  });
+
+  it('injects cover page and legal disclaimer blocks when coverPage is enabled', () => {
+    const doc = fromMdast(parseMarkdown('Body text here.'));
+    const tree = layoutDocument({
+      document: {
+        ...doc,
+        metadata: {
+          title: 'My Custom Document',
+          author: 'John Doe',
+          description: 'A great document description.',
+          keywords: [],
+          language: 'en',
+          createdAt: '',
+          updatedAt: '',
+          coverPage: true,
+          disclaimer: 'Confidential legal text.',
+        },
+      },
+      theme: minimalTheme,
+      settings: DEFAULT_DOCUMENT_SETTINGS,
+    });
+
+    // Page 1 is the cover page, Page 2 is the main content page (pushed by pageBreak)
+    expect(tree.pages).toHaveLength(2);
+
+    const page1 = tree.pages[0]!;
+    // Page 1 should contain: Title, Spacer, Description, Author, Disclaimer, PageBreak
+    const h1 = page1.children[0] as RenderHeading;
+    expect(h1.type).toBe('heading');
+    expect(h1.runs[0]?.text).toBe('My Custom Document');
+
+    const desc = page1.children[2] as RenderParagraph;
+    expect(desc.runs[0]?.text).toBe('A great document description.');
+
+    const author = page1.children[3] as RenderParagraph;
+    expect(author.runs[0]?.text).toBe('By John Doe');
+
+    const disc = page1.children[4] as RenderParagraph;
+    expect(disc.runs[0]?.text).toBe('Confidential legal text.');
+
+    const page2 = tree.pages[1]!;
+    const mainParagraph = page2.children[0] as RenderParagraph;
+    expect(mainParagraph.runs[0]?.text).toBe('Body text here.');
+  });
 });

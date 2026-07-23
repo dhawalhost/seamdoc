@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import JSZip from 'jszip';
 import { renderMarkdown } from '@seamdoc/core';
-import { DEFAULT_DOCUMENT_METADATA } from '@seamdoc/shared';
+import { DEFAULT_DOCUMENT_METADATA, DEFAULT_DOCUMENT_SETTINGS } from '@seamdoc/shared';
 import { docxExporter } from './index.js';
 
 const FIXTURE_MARKDOWN = `# Seamdoc Golden Document
@@ -187,5 +187,23 @@ describe('DocxExporter', () => {
         metadata: DEFAULT_DOCUMENT_METADATA,
       }),
     ).rejects.toThrow('Unsupported render tree version');
+  });
+
+  it('exports DOCX with brand logo and watermark text', async () => {
+    const outcome = renderMarkdown('Testing watermark logo in Word', {
+      theme: 'minimal',
+      settings: {
+        ...DEFAULT_DOCUMENT_SETTINGS,
+        activeBrandPackId: 'acme',
+      },
+    });
+    const result = await docxExporter.export(outcome.renderDocument, {
+      filename: 'branded',
+      metadata: DEFAULT_DOCUMENT_METADATA,
+    });
+    expect(result.data.byteLength).toBeGreaterThan(1000);
+    const zip = await JSZip.loadAsync(result.data);
+    const headerXml = await zip.file('word/header1.xml')!.async('string');
+    expect(headerXml).toContain('ACME');
   });
 });

@@ -14,6 +14,8 @@ import {
   type ReactNode,
 } from 'react';
 import { renderMarkdown } from '@seamdoc/core';
+import { useAppStore } from '../store';
+import { resolvePluginRegistry } from '../lib/plugins';
 import type {
   RenderBlock,
   RenderDocument,
@@ -306,13 +308,20 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(funct
     }
   }, [refreshNonce, markdown]);
 
+  const { enabledPluginIds } = useAppStore();
+
+  const pluginsRegistry = useMemo(() => {
+    return resolvePluginRegistry(enabledPluginIds);
+  }, [enabledPluginIds]);
+
   const rendered = useMemo<RenderDocument | null>(() => {
     try {
-      return renderMarkdown(debounced, { theme, settings }).renderDocument;
+      return renderMarkdown(debounced, { theme, settings, plugins: pluginsRegistry })
+        .renderDocument;
     } catch {
       return null;
     }
-  }, [debounced, theme, settings, refreshNonce]);
+  }, [debounced, theme, settings, pluginsRegistry, refreshNonce]);
 
   const themeObject = useMemo(() => {
     if (typeof theme !== 'string') {

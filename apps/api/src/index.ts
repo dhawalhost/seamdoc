@@ -60,14 +60,16 @@ export function createApp(): Hono {
 // Node.js entry point (run directly with `node dist/index.js`)
 const port = parseInt(process.env['PORT'] ?? '3001', 10);
 
-import('@hono/node-server')
-  .then(({ serve }) => {
-    const app = createApp();
-    serve({ fetch: app.fetch, port }, () => {
-      console.log(`[seamdoc-api] Listening on http://localhost:${port}`);
+if (process.env.NODE_ENV !== 'test') {
+  import('@hono/node-server')
+    .then(({ serve }) => {
+      const app = createApp();
+      serve({ fetch: app.fetch, port }, () => {
+        console.log(`[seamdoc-api] Listening on http://localhost:${port}`);
+      });
+    })
+    .catch((err: unknown) => {
+      console.error('[seamdoc-api] Failed to start server:', err);
+      process.exit(1);
     });
-  })
-  .catch((err: unknown) => {
-    console.error('[seamdoc-api] Failed to start server:', err);
-    process.exit(1);
-  });
+}

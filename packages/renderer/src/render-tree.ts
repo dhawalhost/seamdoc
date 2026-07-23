@@ -183,6 +183,8 @@ export interface RenderPage {
   readonly border: PageBorder | null;
   readonly header: RenderHeaderFooter | null;
   readonly footer: RenderHeaderFooter | null;
+  readonly watermark?: string | null;
+  readonly logo?: string | null;
   readonly children: readonly RenderBlock[];
 }
 

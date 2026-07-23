@@ -4,7 +4,7 @@
  * list contents) are flowed locally with a cursor.
  */
 
-import { rgb } from 'pdf-lib';
+import { rgb, degrees } from 'pdf-lib';
 import type { PDFFont, PDFPage } from 'pdf-lib';
 import type {
   RenderAlignment,
@@ -41,6 +41,33 @@ function parseHex(color: string): Rgb {
 function toColor(hex: string) {
   const { r, g, b } = parseHex(hex);
   return rgb(r, g, b);
+}
+
+function extractTextFromSvgDataUrl(dataUrl: string): string | null {
+  try {
+    if (dataUrl.startsWith('data:image/svg+xml;base64,')) {
+      const base64 = dataUrl.split(',')[1];
+      if (base64) {
+        let svgText = '';
+        const win =
+          typeof globalThis !== 'undefined'
+            ? (globalThis as unknown as { atob?: (s: string) => string })
+            : undefined;
+        if (win && typeof win.atob === 'function') {
+          svgText = win.atob(base64);
+        } else {
+          svgText = Buffer.from(base64, 'base64').toString('utf8');
+        }
+        const textMatch = /<text[^>]*>([^<]+)<\/text>/.exec(svgText);
+        if (textMatch && textMatch[1]) {
+          return textMatch[1].trim();
+        }
+      }
+    }
+  } catch {
+    // Fall back to null
+  }
+  return null;
 }
 
 interface LineSegment {
@@ -160,6 +187,59 @@ export class PageRenderer {
         borderWidth: borderWidth,
       });
     }
+
+    if (this.pageSpec.watermark) {
+      const watermarkText = extractTextFromSvgDataUrl(this.pageSpec.watermark) || 'CONFIDENTIAL';
+      const font = await this.fonts.fontFor({
+        fontFamily: 'Helvetica',
+        fontSize: 48,
+        fontWeight: 700,
+        italic: false,
+        color: '#E0E0E0',
+        underline: false,
+        code: false,
+        link: '',
+      });
+      const size = 48;
+      const textWidth = font.widthOfTextAtSize(watermarkText, size);
+      const x = (this.pageSpec.width - textWidth) / 2;
+      const y = (this.pageSpec.height - size) / 2;
+
+      this.page.drawText(watermarkText, {
+        x,
+        y,
+        size,
+        font,
+        color: rgb(0.85, 0.85, 0.85),
+        opacity: 0.25,
+        rotate: degrees(30),
+      });
+    }
+
+    if (this.pageSpec.logo) {
+      const logoText = extractTextFromSvgDataUrl(this.pageSpec.logo);
+      if (logoText) {
+        const font = await this.fonts.fontFor({
+          fontFamily: 'Helvetica',
+          fontSize: 10,
+          fontWeight: 700,
+          italic: false,
+          color: '#333333',
+          underline: false,
+          code: false,
+          link: '',
+        });
+        const y = this.pdfY(this.pageSpec.margins.top / 2);
+        this.page.drawText(logoText, {
+          x: this.pageSpec.margins.left,
+          y,
+          size: 10,
+          font,
+          color: rgb(0.2, 0.2, 0.2),
+        });
+      }
+    }
+
     if (this.pageSpec.header !== null) {
       await this.drawHeaderFooter(this.pageSpec.header, 'header');
     }

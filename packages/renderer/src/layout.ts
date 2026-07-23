@@ -7,7 +7,7 @@
  */
 
 import type { DocumentSettings, PageDimensions } from '@seamdoc/types';
-import { PAGE_SIZES, RENDER_TREE_VERSION } from '@seamdoc/shared';
+import { PAGE_SIZES, RENDER_TREE_VERSION, BRAND_PACKS } from '@seamdoc/shared';
 import { createIdGenerator, type IdGenerator } from '@seamdoc/utils';
 import type {
   SdmBlock,
@@ -39,6 +39,57 @@ export interface LayoutInput {
   readonly document: SdmDocument;
   readonly theme: Theme;
   readonly settings: DocumentSettings;
+}
+
+/**
+ * Applies brand pack styling overrides (colors and typography) to the active theme.
+ */
+function applyBrandPackOverrides(
+  theme: Theme,
+  settings: DocumentSettings,
+): { theme: Theme; logoUrl: string | null; watermarkUrl: string | null } {
+  let logoUrl: string | null = null;
+  let watermarkUrl: string | null = null;
+  const overriddenTheme = { ...theme };
+
+  if (settings.activeBrandPackId) {
+    const brand = BRAND_PACKS.find((b) => b.id === settings.activeBrandPackId);
+    if (brand) {
+      overriddenTheme.colors = {
+        ...overriddenTheme.colors,
+        primary: brand.primaryColor,
+        accent: brand.secondaryColor,
+      };
+
+      if (settings.fontFamily === null && brand.fontFamilies.length > 0) {
+        const brandFont = brand.fontFamilies[0];
+        if (brandFont) {
+          overriddenTheme.typography = {
+            ...overriddenTheme.typography,
+            body: brandFont,
+            heading: brandFont,
+          };
+          overriddenTheme.paragraph = {
+            ...overriddenTheme.paragraph,
+            fontFamily: brandFont,
+          };
+          overriddenTheme.headings = {
+            h1: { ...overriddenTheme.headings.h1, fontFamily: brandFont },
+            h2: { ...overriddenTheme.headings.h2, fontFamily: brandFont },
+            h3: { ...overriddenTheme.headings.h3, fontFamily: brandFont },
+            h4: { ...overriddenTheme.headings.h4, fontFamily: brandFont },
+            h5: { ...overriddenTheme.headings.h5, fontFamily: brandFont },
+            h6: { ...overriddenTheme.headings.h6, fontFamily: brandFont },
+          };
+        }
+      }
+
+      logoUrl = brand.logoUrl ?? null;
+      watermarkUrl = brand.watermarkUrl ?? null;
+    }
+  }
+
+  return { theme: overriddenTheme, logoUrl, watermarkUrl };
 }
 
 /**
@@ -235,16 +286,56 @@ function preprocessDocument(document: SdmDocument): SdmDocument {
     });
   }
 
+  const coverBlocks: SdmBlock[] = [];
+  if (document.metadata?.coverPage) {
+    coverBlocks.push({
+      type: 'heading' as const,
+      level: 1,
+      children: [{ type: 'text' as const, value: document.metadata.title || 'Untitled' }],
+    });
+    coverBlocks.push({
+      type: 'paragraph' as const,
+      children: [{ type: 'text' as const, value: '' }],
+    });
+    if (document.metadata.description) {
+      coverBlocks.push({
+        type: 'paragraph' as const,
+        children: [{ type: 'text' as const, value: document.metadata.description }],
+      });
+    }
+    const authorLine = document.metadata.author ? `By ${document.metadata.author}` : '';
+    if (authorLine) {
+      coverBlocks.push({
+        type: 'paragraph' as const,
+        children: [{ type: 'text' as const, value: authorLine }],
+      });
+    }
+    if (document.metadata.disclaimer) {
+      coverBlocks.push({
+        type: 'paragraph' as const,
+        children: [{ type: 'text' as const, value: document.metadata.disclaimer }],
+      });
+    }
+    coverBlocks.push({
+      type: 'pageBreak' as const,
+    });
+  }
+
   return {
     ...document,
-    children: mappedBodyBlocks,
+    children: [...coverBlocks, ...mappedBodyBlocks],
   };
 }
 
 export function layoutDocument(input: LayoutInput): RenderDocument {
   const document = preprocessDocument(input.document);
   const { settings } = input;
-  const theme = applySettingsOverrides(input.theme, settings);
+  const {
+    theme: brandTheme,
+    logoUrl,
+    watermarkUrl,
+  } = applyBrandPackOverrides(input.theme, settings);
+  const theme = applySettingsOverrides(brandTheme, settings);
   const pageSize = resolvePageSize(settings);
   const contentWidth = pageSize.width - settings.margins.left - settings.margins.right;
   const contentHeight = pageSize.height - settings.margins.top - settings.margins.bottom;
@@ -260,6 +351,8 @@ export function layoutDocument(input: LayoutInput): RenderDocument {
     settings,
     theme,
     ids,
+    logoUrl,
+    watermarkUrl,
   });
 
   return {
@@ -286,6 +379,8 @@ interface PaginationContext {
   readonly settings: DocumentSettings;
   readonly theme: Theme;
   readonly ids: IdGenerator;
+  readonly logoUrl: string | null;
+  readonly watermarkUrl: string | null;
 }
 
 function paginate(blocks: readonly RenderBlock[], ctx: PaginationContext): readonly RenderPage[] {
@@ -350,6 +445,8 @@ function buildPage(children: readonly RenderBlock[], ctx: PaginationContext): Re
     border: ctx.settings.pageBorder || null,
     header: buildHeaderFooter(ctx.settings.header, false, ctx),
     footer: buildHeaderFooter(ctx.settings.footer, ctx.settings.pageNumbers, ctx),
+    watermark: ctx.watermarkUrl,
+    logo: ctx.logoUrl,
     children,
   };
 }
